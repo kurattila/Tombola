@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>Images/prosecco_background.jpg</file>
+        <file>Images/TombolaAppIcon.png</file>
+        <file>Images/DeleteTrashBin.png</file>
+        <file>Images/CheckMark.png</file>
+        <file>TicketInnerVisual.qml</file>
+    </qresource>
+</RCC>
