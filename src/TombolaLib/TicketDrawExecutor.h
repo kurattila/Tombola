@@ -24,7 +24,8 @@ public:
 
     Q_PROPERTY(SingleTicketDraw_ViewModel* ticketDrawLeft READ ticketDrawLeft NOTIFY ticketDrawLeftChanged)
     Q_PROPERTY(SingleTicketDraw_ViewModel* ticketDrawRight READ ticketDrawRight NOTIFY ticketDrawRightChanged)
-    Q_PROPERTY(int remainingPrizesCount READ remainingPrizesCount NOTIFY remainingPrizesCountChanged)
+    Q_PROPERTY(int remainingPrizesCount READ remainingPrizesCount WRITE setRemainingPrizesCount NOTIFY remainingPrizesCountChanged)
+    Q_PROPERTY(int minAllowedRemainingPrizesCount READ minAllowedRemainingPrizesCount NOTIFY minAllowedRemainingPrizesCountChanged)
 
 private:
     TombolaDocument& m_Document;
@@ -38,14 +39,17 @@ private:
     SingleTicketDraw_ViewModel* ticketDrawRight();
 
     void setRemainingPrizesCount(int remaining);
+    void setCurrentlySpinningCount(int ticketsSpinningNow);
 
 protected:
     int remainingPrizesCount() const;
+    int minAllowedRemainingPrizesCount() const;
 
 signals:
     void ticketDrawLeftChanged();
     void ticketDrawRightChanged();
     void remainingPrizesCountChanged();
+    void minAllowedRemainingPrizesCountChanged();
 
 public slots:
     void onTicketWinningPositionRequested();

@@ -729,21 +729,61 @@ ApplicationWindow {
             }
         }
 
-        Rectangle {
+        MouseArea {
             x: (appWindow.width - width)/2
-            width: 250
-            height: 150
             y: 20
-            color: "white"
-            opacity: 0.8
-            Text {
-                y: 20
+            width: 290
+            height: 90
+            Rectangle {
+                color: "white"
+                opacity: 0.8
                 anchors.fill: parent
-                horizontalAlignment: Text.AlignHCenter
-                font.pointSize: 28
-                font.bold: true
-                color: "brown"
-                text: "Sorsolható\ndíjak:\n" + ticketDrawExecutor.remainingPrizesCount + " db"
+                Column {
+                    anchors.fill: parent
+                    Text {
+                        width: parent.width
+                        height: 50
+                        horizontalAlignment: Text.AlignHCenter
+                        font.pointSize: 28
+                        font.bold: true
+                        color: "brown"
+                        text: "Sorsolható"
+                    }
+                    SpinBox
+                    {
+                        id: remainingPrizesCountSpinBox
+                        width: parent.width
+                        height: 30
+                        value: ticketDrawExecutor.remainingPrizesCount
+                        activeFocusOnPress: false
+                        focus: false
+                        horizontalAlignment: Text.AlignHCenter
+                        prefix: "díjak: "
+                        suffix: " db"
+                        minimumValue: ticketDrawExecutor.minAllowedRemainingPrizesCount
+                        maximumValue: 1000
+                        stepSize: 1
+                        Layout.leftMargin: 10
+                        font.pointSize: 28
+                        font.bold: true
+                        style: SpinBoxStyle{
+                            background: Rectangle {
+                                width: 100
+                                implicitHeight: 20
+                                border.width: 0
+                                color: "transparent"
+                                radius: 2
+                            }
+                            textColor: "brown"
+                            selectionColor: "orange"
+                        }
+                        Binding {
+                            target: ticketDrawExecutor
+                            property: "remainingPrizesCount"
+                            value: remainingPrizesCountSpinBox.value
+                        }
+                    }
+                }
             }
         }
     }

@@ -27,6 +27,13 @@ private slots:
     void onTriggerByUser_WontQueryTicketDrawRight_WhenTicketDrawLeftAcceptsTheRequest();
     void onTriggerByUser_DoesNothing_WhenAllPrizesDrawnAlready();
     void onTriggerByUser_DoesNothing_WhenOnePrizeLeftOnlyButOneDrawStillSpinning();
+
+    void minAllowedRemainingPrizesCount_IsZero_ByDefault();
+    void minAllowedRemainingPrizesCount_IsOne_WhenLeftTicketSpinning();
+    void minAllowedRemainingPrizesCount_IsTwo_WhenBothTicketsSpinning();
+    void minAllowedRemainingPrizesCount_ComesBackToOneAgain_WhenOneOf2TicketsStopsSpinning();
+    void minAllowedRemainingPrizesCount_ComesBackToZeroAgain_WhenBothTicketsStopSpinning();
+    void minAllowedRemainingPrizesCount_ComesBackToZeroYetBeforeRemainingPrizesCountGoesToZero_WhenTicketForLastPrizeStopsSpinning();
 };
 
 class Fake_SingleTicketDraw_ViewModel : public SingleTicketDraw_ViewModel
@@ -286,6 +293,161 @@ void TicketDrawExecutor_Test::onTriggerByUser_DoesNothing_WhenOnePrizeLeftOnlyBu
 
     QCOMPARE(ticketDrawLeft->CalledOnTriggerByUser, false);
     QCOMPARE(ticketDrawRight->CalledOnTriggerByUser, false);
+}
+
+void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_IsZero_ByDefault()
+{
+    const int totalPrizesCount = 2;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    block->SetTicketSold(7, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+
+    int minAllowedRemainingPrizes = ticketDrawExecutor.property("minAllowedRemainingPrizesCount").toInt();
+
+    QCOMPARE(minAllowedRemainingPrizes, 0);
+}
+
+void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_IsOne_WhenLeftTicketSpinning()
+{
+    const int totalPrizesCount = 2;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    block->SetTicketSold(7, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(minAllowedRemainingPrizesCountChanged()));
+
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawExecutor.onTriggerByUser(); // started but WinningPosition not achieved yet
+    // ticketDrawLeft->ForceEmitTicketWinningPositionRequested();
+    int minAllowedRemainingPrizes = ticketDrawExecutor.property("minAllowedRemainingPrizesCount").toInt();
+
+    QCOMPARE(minAllowedRemainingPrizes, 1);
+    QCOMPARE(signalSpy.count(), 1);
+}
+
+void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_IsTwo_WhenBothTicketsSpinning()
+{
+    const int totalPrizesCount = 2;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    block->SetTicketSold(7, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(minAllowedRemainingPrizesCountChanged()));
+
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawExecutor.onTriggerByUser(); // started but WinningPosition not achieved yet
+    ticketDrawExecutor.onTriggerByUser(); // started but WinningPosition not achieved yet
+    // ticketDrawLeft->ForceEmitTicketWinningPositionRequested();
+    // ticketDrawRight->ForceEmitTicketWinningPositionRequested();
+    int minAllowedRemainingPrizes = ticketDrawExecutor.property("minAllowedRemainingPrizesCount").toInt();
+
+    QCOMPARE(minAllowedRemainingPrizes, 2);
+    QCOMPARE(signalSpy.count(), 2);
+}
+
+void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_ComesBackToOneAgain_WhenOneOf2TicketsStopsSpinning()
+{
+    const int totalPrizesCount = 2;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    block->SetTicketSold(7, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(minAllowedRemainingPrizesCountChanged()));
+
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawExecutor.onTriggerByUser(); // started but WinningPosition not achieved yet
+    ticketDrawExecutor.onTriggerByUser(); // started but WinningPosition not achieved yet
+    ticketDrawLeft->ForceEmitTicketWinningPositionRequested(); // WinningPosition achieved
+    // ticketDrawRight->ForceEmitTicketWinningPositionRequested();
+    int minAllowedRemainingPrizes = ticketDrawExecutor.property("minAllowedRemainingPrizesCount").toInt();
+
+    QCOMPARE(minAllowedRemainingPrizes, 1);
+    QCOMPARE(signalSpy.count(), 3);
+}
+
+void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_ComesBackToZeroAgain_WhenBothTicketsStopSpinning()
+{
+    const int totalPrizesCount = 2;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    block->SetTicketSold(7, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(minAllowedRemainingPrizesCountChanged()));
+
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawExecutor.onTriggerByUser(); // started but WinningPosition not achieved yet
+    ticketDrawExecutor.onTriggerByUser(); // started but WinningPosition not achieved yet
+    ticketDrawLeft->ForceEmitTicketWinningPositionRequested(); // WinningPosition achieved
+    ticketDrawRight->ForceEmitTicketWinningPositionRequested(); // WinningPosition achieved
+    int minAllowedRemainingPrizes = ticketDrawExecutor.property("minAllowedRemainingPrizesCount").toInt();
+
+    QCOMPARE(minAllowedRemainingPrizes, 0);
+    QCOMPARE(signalSpy.count(), 4);
+}
+
+void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_ComesBackToZeroYetBeforeRemainingPrizesCountGoesToZero_WhenTicketForLastPrizeStopsSpinning()
+{
+    // Bugfix unit test:
+    // When the last ticket is spinning, which will draw the last prize, then the SpinBox's "minimumValue" property
+    // shall be updated yet _before_ its "value" property. Otherwise, "value" couldn't go down to 0, when "minimumValue"
+    // was still 1.
+
+    const int totalPrizesCount = 1;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    int minAllowedValueBeforeLastTicketStop = 100;
+    connect(&ticketDrawExecutor, &TicketDrawExecutor::remainingPrizesCountChanged, [&]
+    {
+        auto prop = ticketDrawExecutor.property("minAllowedRemainingPrizesCount");
+        if (prop.isValid()) // beware of mistyping property name
+            minAllowedValueBeforeLastTicketStop = prop.toInt();
+    });
+
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawExecutor.onTriggerByUser(); // started but WinningPosition not achieved yet
+    ticketDrawLeft->ForceEmitTicketWinningPositionRequested(); // WinningPosition achieved
+
+    QCOMPARE(minAllowedValueBeforeLastTicketStop, 0);
 }
 
 

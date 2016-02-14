@@ -47,7 +47,7 @@ void TicketDrawExecutor::onTriggerByUser()
         leftRightResult = m_TicketDrawRight->onTriggerByUser();
 
     if (leftRightResult == SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted)
-        m_CurrentlySpinningCount++;
+        setCurrentlySpinningCount(m_CurrentlySpinningCount + 1);
 }
 
 SingleTicketDraw_ViewModel *TicketDrawExecutor::ticketDrawLeft()
@@ -66,13 +66,24 @@ void TicketDrawExecutor::setRemainingPrizesCount(int remaining)
     emit remainingPrizesCountChanged();
 }
 
+void TicketDrawExecutor::setCurrentlySpinningCount(int ticketsSpinningNow)
+{
+    m_CurrentlySpinningCount = ticketsSpinningNow;
+    emit minAllowedRemainingPrizesCountChanged();
+}
+
 int TicketDrawExecutor::remainingPrizesCount() const
 {
     return m_RemainingPrizesCount;
 }
 
+int TicketDrawExecutor::minAllowedRemainingPrizesCount() const
+{
+    return m_CurrentlySpinningCount;
+}
+
 void TicketDrawExecutor::onTicketWinningPositionRequested()
 {
+    setCurrentlySpinningCount(m_CurrentlySpinningCount - 1);
     setRemainingPrizesCount(m_RemainingPrizesCount - 1);
-    m_CurrentlySpinningCount--;
 }
