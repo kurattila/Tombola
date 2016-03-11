@@ -19,6 +19,7 @@ TicketDrawExecutor::TicketDrawExecutor(  TombolaDocument& document
 void TicketDrawExecutor::onPrizeDrawingStartUp()
 {
     setRemainingPrizesCount(m_Document.PrizesCount); // do _not_ initialize in ctor; it might have changed since the ctor
+    m_CurrentlySpinningCount = 0;
 
     std::list<std::shared_ptr<Ticket>> inGameTickets;
     TicketFactory ticketFactory;

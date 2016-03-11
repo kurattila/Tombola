@@ -85,6 +85,7 @@ protected:
     std::shared_ptr<Ticket> m_CurrentFlyThroughTicket;
 
 signals:
+    void ticketStartupPositionRequested();
     void ticketFlyThroughRequested();
     void ticketWinningPositionRequested();
     void ticketVanishRequested();

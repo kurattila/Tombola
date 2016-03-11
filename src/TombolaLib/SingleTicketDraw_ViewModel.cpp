@@ -9,7 +9,11 @@ SingleTicketDraw_ViewModel::SingleTicketDraw_ViewModel(QObject *parent)
 
 void SingleTicketDraw_ViewModel::Init(InGameTicketsRepository *inGameTicketsRepository)
 {
+    removeRows(0, rowCount()); // forget any previous prize drawings
     m_InGameTicketsRepository = inGameTicketsRepository;
+
+    emit ticketStartupPositionRequested();
+    m_TicketDrawState = TicketDrawState::NotStarted;
 }
 
 int SingleTicketDraw_ViewModel::rowCount(const QModelIndex& /*parent*/) const

@@ -25,6 +25,19 @@ ApplicationWindow {
         onYes: ticketsSellingPoint.blockSelectionList.doDeleteRow(indexToBeDeleted);
     }
 
+    MessageDialog {
+        id: cancelPrizeDrawingMsgBox
+        icon: StandardIcon.Question
+        title: "Tombola"
+        text: "Végképp megszakítod a sorsolást?"
+        standardButtons: StandardButton.Yes | StandardButton.No
+        onYes: {
+            stageOfPrizeDrawing.state = "invisible";
+            stageOfTicketsInput.state = "visible";
+//            stageOfTicketsInput.forceActiveFocus();
+        }
+    }
+
     Image
     {
         anchors.fill: parent
@@ -34,26 +47,24 @@ ApplicationWindow {
     ColumnLayout
     {
         id: stageOfTicketsInput
-        Behavior on opacity { NumberAnimation { duration: 1000 } }
+        Behavior on opacity { NumberAnimation { duration: appWindow.stageTransitionAnimationDuration / 2 } }
 
-        states:
+        states: [
             State {
                 name: "invisible"
-            }
-
-        transitions:
-            Transition {
-                to: "invisible"
-                SequentialAnimation {
-                    NumberAnimation {
-                        target: stageOfTicketsInput
-                        property: "opacity"
-                        to: 0
-                        duration: appWindow.stageTransitionAnimationDuration / 2
-                    }
-                    PropertyAction { target: stageOfTicketsInput; property: "visible"; value: false }
+                PropertyChanges {
+                    target: stageOfTicketsInput
+                    opacity: 0
+                }
+            },
+            State {
+                name: "visible"
+                PropertyChanges {
+                    target: stageOfTicketsInput
+                    opacity: 1
                 }
             }
+        ]
 
         Rectangle
         {
@@ -418,18 +429,16 @@ ApplicationWindow {
             columnLayoutGap = 50;
         }
 
-        states:
-            State {
-                name: "visible"
-            }
+        states: [
+            State { name: "visible" },
+            State { name: "invisible" }
+        ]
 
-        transitions:
+        transitions: [
             Transition {
                 to: "visible"
                 SequentialAnimation {
-                    PauseAnimation { duration: appWindow.stageTransitionAnimationDuration / 2 }
                     ScriptAction { script: ticketDrawExecutor.onPrizeDrawingStartUp(); }
-                    ScriptAction { script: ticketDrawExecutor.onTriggerByUser(); } // auto-start LEFT prize drawing
                     PropertyAction { target: stageOfPrizeDrawing; property: "visible"; value: true }
                     NumberAnimation {
                         target: stageOfPrizeDrawing
@@ -437,10 +446,24 @@ ApplicationWindow {
                         to: 1
                         duration: appWindow.stageTransitionAnimationDuration / 2
                     }
+                    ScriptAction { script: ticketDrawExecutor.onTriggerByUser(); } // auto-start LEFT prize drawing
                     PauseAnimation { duration: 1000 }
                     ScriptAction { script: ticketDrawExecutor.onTriggerByUser(); } // auto-start RIGHT prize drawing
                 }
+            },
+            Transition {
+                to: "invisible"
+                SequentialAnimation {
+                    NumberAnimation {
+                        target: stageOfPrizeDrawing
+                        property: "opacity"
+                        to: 0
+                        duration: appWindow.stageTransitionAnimationDuration / 2
+                    }
+                    PropertyAction { target: stageOfPrizeDrawing; property: "visible"; value: false }
+                }
             }
+        ]
 
         ListView {
             height: parent.height
@@ -565,6 +588,13 @@ ApplicationWindow {
 //        }
 
 //        Text { text: ticketDrawExecutor.ticketDrawLeft.animationDuration }
+
+        Connections {
+            target: ticketDrawExecutor.ticketDrawLeft
+            onTicketStartupPositionRequested: {
+                ticketRectLeft.state = "down";
+            }
+        }
 
         Connections {
             target: ticketDrawExecutor.ticketDrawLeft
@@ -708,6 +738,12 @@ ApplicationWindow {
 
         Connections {
             target: ticketDrawExecutor.ticketDrawRight
+            onTicketStartupPositionRequested: {
+                ticketRectRight.state = "down";
+            }
+        }
+        Connections {
+            target: ticketDrawExecutor.ticketDrawRight
             onTicketFlyThroughRequested: {
                 ticketRectRight.state = "down";
                 ticketRectRight.state = "up";
@@ -784,6 +820,11 @@ ApplicationWindow {
                         }
                     }
                 }
+            }
+            Button {
+                width: 30
+                text: "\u21a9"
+                onClicked: cancelPrizeDrawingMsgBox.open()
             }
         }
     }

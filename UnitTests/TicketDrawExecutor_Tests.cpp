@@ -16,6 +16,7 @@ public:
 private slots:
     void onPrizeDrawingStartUp_WillCallInitOfSingleTicketDrawVMs_Always();
     void onPrizeDrawingStartUp_WillPassNonEmptyRepositoryToSingleTicketDrawVMs_Always();
+    void onPrizeDrawingStartUp_WillClearSpinningStatuses_WhenCalledRepeatedly();
 
     void remainingPrizesCount_ReturnsTotalPrizesCount_WhenNoTicketDrawExecutedYet();
     void remainingPrizesCount_WillReturnOneLess_WhenOneTicketAchievedTheWinningState();
@@ -70,7 +71,7 @@ void TicketDrawExecutor_Test::onPrizeDrawingStartUp_WillCallInitOfSingleTicketDr
     TombolaDocument document;
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     ticketDrawExecutor.onPrizeDrawingStartUp();
@@ -86,7 +87,7 @@ void TicketDrawExecutor_Test::onPrizeDrawingStartUp_WillPassNonEmptyRepositoryTo
     block->SetTicketSold(5, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     ticketDrawExecutor.onPrizeDrawingStartUp();
@@ -96,6 +97,31 @@ void TicketDrawExecutor_Test::onPrizeDrawingStartUp_WillPassNonEmptyRepositoryTo
     QCOMPARE(ticketDrawRight->PrivateInGameRepository()->GetTicketsStillInGame().size(), 1U);
 }
 
+void TicketDrawExecutor_Test::onPrizeDrawingStartUp_WillClearSpinningStatuses_WhenCalledRepeatedly()
+{
+    TombolaDocument document;
+    document.PrizesCount = 2;
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    ticketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // LEFT will reject while spinning
+    ticketDrawExecutor.onTriggerByUser(); // spin up RIGHT
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // RIGHT will reject while spinning
+    ticketDrawLeft->CalledOnTriggerByUser = false;
+    ticketDrawRight->CalledOnTriggerByUser = false;
+
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+
+    ticketDrawExecutor.onTriggerByUser(); // will call ticketDrawLeft->onTriggerByUser() only if not spinning, because only 2 prizes exist
+    ticketDrawExecutor.onTriggerByUser(); // will call ticketDrawRight->onTriggerByUser() only if not spinning, because only 2 prizes exist
+    QVERIFY(ticketDrawLeft->CalledOnTriggerByUser);
+    QVERIFY(ticketDrawRight->CalledOnTriggerByUser);
+}
+
 void TicketDrawExecutor_Test::remainingPrizesCount_ReturnsTotalPrizesCount_WhenNoTicketDrawExecutedYet()
 {
     const int totalPrizesCount = 50;
@@ -103,7 +129,7 @@ void TicketDrawExecutor_Test::remainingPrizesCount_ReturnsTotalPrizesCount_WhenN
     document.PrizesCount = totalPrizesCount;
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     int remainingPrizes = ticketDrawExecutor.property("remainingPrizesCount").toInt();
@@ -120,7 +146,7 @@ void TicketDrawExecutor_Test::remainingPrizesCount_WillReturnOneLess_WhenOneTick
     block->SetTicketSold(5, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
     QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(remainingPrizesCountChanged()));
 
@@ -142,7 +168,7 @@ void TicketDrawExecutor_Test::remainingPrizesCount_WillReturnZero_For3PrizesWhen
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
     QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(remainingPrizesCountChanged()));
 
@@ -162,7 +188,7 @@ void TicketDrawExecutor_Test::remainingPrizesCount_WillReturnTen_IfPrizesCountCh
     document.PrizesCount = totalPrizesCount;
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(remainingPrizesCountChanged()));
 
     document.PrizesCount = 10; // TicketDrawExecutor ctor has "seen" 5, now it's 10
@@ -184,7 +210,7 @@ void TicketDrawExecutor_Test::onTriggerByUser_WillQueryTicketDrawLeftOnly_ByDefa
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     ticketDrawExecutor.onTriggerByUser();
@@ -204,7 +230,7 @@ void TicketDrawExecutor_Test::onTriggerByUser_WillQueryTicketDrawRight_WhenTicke
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected;
@@ -224,7 +250,7 @@ void TicketDrawExecutor_Test::onTriggerByUser_WontQueryTicketDrawRight_WhenTicke
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
@@ -244,7 +270,7 @@ void TicketDrawExecutor_Test::onTriggerByUser_DoesNothing_WhenAllPrizesDrawnAlre
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
@@ -275,7 +301,7 @@ void TicketDrawExecutor_Test::onTriggerByUser_DoesNothing_WhenOnePrizeLeftOnlyBu
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     // both left&righ started spinning, but only left has a winning ticket yet; right still spinning
@@ -306,7 +332,7 @@ void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_IsZero_ByDefault()
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     int minAllowedRemainingPrizes = ticketDrawExecutor.property("minAllowedRemainingPrizesCount").toInt();
@@ -325,7 +351,7 @@ void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_IsOne_WhenLeftTicke
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
     QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(minAllowedRemainingPrizesCountChanged()));
 
@@ -349,7 +375,7 @@ void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_IsTwo_WhenBothTicke
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
     QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(minAllowedRemainingPrizesCountChanged()));
 
@@ -376,7 +402,7 @@ void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_ComesBackToOneAgain
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
     QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(minAllowedRemainingPrizesCountChanged()));
 
@@ -403,7 +429,7 @@ void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_ComesBackToZeroAgai
     block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
     QSignalSpy signalSpy(&ticketDrawExecutor, SIGNAL(minAllowedRemainingPrizesCountChanged()));
 
@@ -433,7 +459,7 @@ void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_ComesBackToZeroYetB
     block->SetTicketSold(5, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight);
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     ticketDrawExecutor.onPrizeDrawingStartUp();
     int minAllowedValueBeforeLastTicketStop = 100;
     connect(&ticketDrawExecutor, &TicketDrawExecutor::remainingPrizesCountChanged, [&]

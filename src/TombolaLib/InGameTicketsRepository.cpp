@@ -8,6 +8,7 @@ InGameTicketsRepository::InGameTicketsRepository()
 void InGameTicketsRepository::Init(const std::list<std::shared_ptr<Ticket> > &untouchedTickets)
 {
     m_UntouchedTickets = untouchedTickets;
+    m_WinningTickets.clear();
 }
 
 void InGameTicketsRepository::OnTicketDrawn(std::shared_ptr<Ticket> winningTicket)

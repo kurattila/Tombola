@@ -16,6 +16,8 @@ public:
     }
 
 private slots:
+    void Init_WillClearWinningTicketsHistory_WhenInitializedRepeatedly();
+
     void GetTicketsStillInGame_ReturnsAllTickets_WhenNoTicketsDrawnYet();
 
     void GetWinningTicketsHistory_ReturnsEmptyList_WhenNoTicketsDrawnYet();
@@ -25,6 +27,23 @@ private slots:
     void OnTicketDrawn_WillRemoveWinningTicketFromInGameTickets_Always();
     void OnTicketDrawn_WillEmptyInGameTickets_WhenCalledForEverySingleTicket();
 };
+
+void InGameTicketsRepository_Test::Init_WillClearWinningTicketsHistory_WhenInitializedRepeatedly()
+{
+    TicketsBlock block(10);
+    auto ticket1 = std::make_shared<Ticket>(1, block);
+    auto ticket2 = std::make_shared<Ticket>(2, block);
+    auto ticket3 = std::make_shared<Ticket>(3, block);
+    std::list<std::shared_ptr<Ticket>> allTickets = { ticket1, ticket2, ticket3 };
+    InGameTicketsRepository repository;
+
+    repository.Init(allTickets);
+    repository.OnTicketDrawn(ticket1); // puts 'ticket1' into "winning tickets"
+    repository.Init(allTickets); // prize drawing _restarted_!
+
+    auto winningTickets = repository.GetWinningTicketsHistory();
+    QCOMPARE(winningTickets.size(), 0U);
+}
 
 void InGameTicketsRepository_Test::GetTicketsStillInGame_ReturnsAllTickets_WhenNoTicketsDrawnYet()
 {
