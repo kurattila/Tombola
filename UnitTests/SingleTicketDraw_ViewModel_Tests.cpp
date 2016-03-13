@@ -17,6 +17,7 @@ private slots:
     void Init_WillClearPreviousWinningTickets_WhenPrizeDrawingRepeated();
     void Init_WillResetQmlTicketPosition_WhenPrizeDrawingRepeated();
     void Init_WillResetTicketDrawState_WhenPrizeDrawingRepeated();
+    void Init_WontTryToRemoveAnyRows_WhenZeroRowsShallBeRemoved();
 
     void onTriggerByUser_WillAcceptQuery_WhenRightAfterStart();
     void onTriggerByUser_WillRejectQuery_WhenTicketSpinning();
@@ -137,6 +138,20 @@ void SingleTicketDraw_ViewModel_Test::onTriggerByUser_WillRejectQuery_DuringWinn
                                                         // Accepting would mean to TicketDrawExecutor that it has made our ticket spin a second time which is impossible
 
     QCOMPARE(result, SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected);
+}
+
+void SingleTicketDraw_ViewModel_Test::Init_WontTryToRemoveAnyRows_WhenZeroRowsShallBeRemoved()
+{
+    TicketsBlock block(100);
+    std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block) };
+    InGameTicketsRepository ticketsRepository;
+    ticketsRepository.Init(tickets);
+    SingleTicketDraw_ViewModel singleTicketDrawVM;
+    QSignalSpy signalSpy(&singleTicketDrawVM, SIGNAL(rowsAboutToBeRemoved()));
+
+    singleTicketDrawVM.Init(&ticketsRepository);
+
+    QCOMPARE(signalSpy.count(), 0);
 }
 
 #include "SingleTicketDraw_ViewModel_Tests.moc"

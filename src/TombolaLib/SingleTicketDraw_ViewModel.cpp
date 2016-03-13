@@ -188,6 +188,9 @@ bool SingleTicketDraw_ViewModel::insertRows(int row, int count, const QModelInde
 
 bool SingleTicketDraw_ViewModel::removeRows(int row, int count, const QModelIndex &parent)
 {
+    if (count == 0)
+        return false;
+
     beginRemoveRows(parent, row, row + count - 1);
     while(count--)
     {
