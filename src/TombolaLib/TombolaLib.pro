@@ -50,7 +50,8 @@ HEADERS += tombolalib.h\
     InGameTicketsRepository.h \
     TombolaDocument.h \
     TicketDrawExecutor.h \
-    Logger.h
+    Logger.h \
+    IMemento.h
 
 unix:!symbian {
     maemo5 {
