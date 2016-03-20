@@ -18,9 +18,6 @@ TicketDrawExecutor::TicketDrawExecutor(  TombolaDocument& document
 
 void TicketDrawExecutor::onPrizeDrawingStartUp()
 {
-    setRemainingPrizesCount(m_Document.PrizesCount); // do _not_ initialize in ctor; it might have changed since the ctor
-    m_CurrentlySpinningCount = 0;
-
     std::list<std::shared_ptr<Ticket>> inGameTickets;
     TicketFactory ticketFactory;
 
@@ -36,6 +33,9 @@ void TicketDrawExecutor::onPrizeDrawingStartUp()
 
     m_TicketDrawLeft->Init(&m_InGameTicketsRepository);
     m_TicketDrawRight->Init(&m_InGameTicketsRepository);
+
+    setRemainingPrizesCount(m_Document.PrizesCount); // do _not_ initialize in ctor; it might have changed since the ctor
+    m_CurrentlySpinningCount = 0;
 }
 
 void TicketDrawExecutor::onTriggerByUser()
@@ -63,8 +63,12 @@ SingleTicketDraw_ViewModel *TicketDrawExecutor::ticketDrawRight()
 
 void TicketDrawExecutor::setRemainingPrizesCount(int remaining)
 {
-    m_RemainingPrizesCount = remaining;
-    emit remainingPrizesCountChanged();
+    if (m_RemainingPrizesCount != remaining)
+    {
+        int coercedRemaining = std::min(remaining, maxAllowedRemainingPrizesCount());
+        m_RemainingPrizesCount = coercedRemaining;
+        emit remainingPrizesCountChanged();
+    }
 }
 
 void TicketDrawExecutor::setCurrentlySpinningCount(int ticketsSpinningNow)
@@ -81,6 +85,16 @@ int TicketDrawExecutor::remainingPrizesCount() const
 int TicketDrawExecutor::minAllowedRemainingPrizesCount() const
 {
     return m_CurrentlySpinningCount;
+}
+
+int TicketDrawExecutor::maxAllowedRemainingPrizesCount() const
+{
+    int winningCount = m_InGameTicketsRepository.GetWinningTicketsHistory().size();
+    int untouchedCount = m_InGameTicketsRepository.GetTicketsStillInGame().size();
+    if (winningCount == 0 && untouchedCount == 0)
+        return 1000;
+    else
+        return untouchedCount + m_CurrentlySpinningCount;
 }
 
 void TicketDrawExecutor::onTicketWinningPositionRequested()

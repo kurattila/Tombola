@@ -22,6 +22,9 @@ private slots:
     void remainingPrizesCount_WillReturnOneLess_WhenOneTicketAchievedTheWinningState();
     void remainingPrizesCount_WillReturnZero_For3PrizesWhen3TicketsAchievedTheWinningState();
     void remainingPrizesCount_WillReturnTen_IfPrizesCountChangedToTenBeforeStartUpWasCalled();
+    void remainingPrizesCount_WillReturnTotalPrizesCount_WhenPrizeDrawingHasBeenRestarted();
+
+    void setRemainigPrizesCount_WillBeCoercedToMaxValue_WhenMorePrizesThanSoldTickets();
 
     void onTriggerByUser_WillQueryTicketDrawLeftOnly_ByDefault();
     void onTriggerByUser_WillQueryTicketDrawRight_WhenTicketDrawLeftRejectsTheRequest();
@@ -37,11 +40,23 @@ private slots:
     void minAllowedRemainingPrizesCount_ComesBackToZeroYetBeforeRemainingPrizesCountGoesToZero_WhenTicketForLastPrizeStopsSpinning();
 };
 
-class Fake_SingleTicketDraw_ViewModel : public SingleTicketDraw_ViewModel
+class FakeBase_SingleTicketDraw_ViewModel : public SingleTicketDraw_ViewModel
+{
+public:
+    FakeBase_SingleTicketDraw_ViewModel(QObject* parent = 0)
+        : SingleTicketDraw_ViewModel(parent)
+    {}
+    void ForceEmitTicketWinningPositionRequested()
+    {
+        emit ticketWinningPositionRequested();
+    }
+};
+
+class Fake_SingleTicketDraw_ViewModel : public FakeBase_SingleTicketDraw_ViewModel
 {
 public:
     Fake_SingleTicketDraw_ViewModel(QObject* parent = 0)
-        : SingleTicketDraw_ViewModel(parent)
+        : FakeBase_SingleTicketDraw_ViewModel(parent)
     {}
     bool CalledInit = false;
     virtual void Init(InGameTicketsRepository* inGameTicketsRepository) override
@@ -59,10 +74,6 @@ public:
     InGameTicketsRepository* PrivateInGameRepository()
     {
         return m_InGameTicketsRepository;
-    }
-    void ForceEmitTicketWinningPositionRequested()
-    {
-        emit ticketWinningPositionRequested();
     }
 };
 
@@ -139,11 +150,13 @@ void TicketDrawExecutor_Test::remainingPrizesCount_ReturnsTotalPrizesCount_WhenN
 
 void TicketDrawExecutor_Test::remainingPrizesCount_WillReturnOneLess_WhenOneTicketAchievedTheWinningState()
 {
-    const int totalPrizesCount = 50;
+    const int totalPrizesCount = 3;
     TombolaDocument document;
     document.PrizesCount = totalPrizesCount;
     auto block = document.AllTicketsBlocksSet->AddBlock();
     block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    block->SetTicketSold(7, true);
     auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
     auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
     TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
@@ -197,6 +210,49 @@ void TicketDrawExecutor_Test::remainingPrizesCount_WillReturnTen_IfPrizesCountCh
 
     QCOMPARE(remainingPrizes, 10);
     QCOMPARE(signalSpy.count(), 1);
+}
+
+void TicketDrawExecutor_Test::remainingPrizesCount_WillReturnTotalPrizesCount_WhenPrizeDrawingHasBeenRestarted()
+{
+    const int totalPrizesCount = 2;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    auto ticketDrawLeft = new FakeBase_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new FakeBase_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    ticketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    ticketDrawExecutor.onTriggerByUser(); // spin up RIGHT
+    ticketDrawLeft->ForceEmitTicketWinningPositionRequested();
+    ticketDrawRight->ForceEmitTicketWinningPositionRequested();
+    ticketDrawExecutor.onPrizeDrawingStartUp(); // restart prize drawing after remaining count has been zeroed!
+
+    int remainingPrizes = ticketDrawExecutor.property("remainingPrizesCount").toInt();
+    QCOMPARE(remainingPrizes, totalPrizesCount);
+}
+
+void TicketDrawExecutor_Test::setRemainigPrizesCount_WillBeCoercedToMaxValue_WhenMorePrizesThanSoldTickets()
+{
+    const int totalPrizesCount = 3;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    block->SetTicketSold(7, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+
+    ticketDrawExecutor.setProperty("remainingPrizesCount", 4);
+
+    int remainingPrizes = ticketDrawExecutor.property("remainingPrizesCount").toInt();
+    QCOMPARE(remainingPrizes, 3);
 }
 
 void TicketDrawExecutor_Test::onTriggerByUser_WillQueryTicketDrawLeftOnly_ByDefault()
@@ -475,7 +531,6 @@ void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_ComesBackToZeroYetB
 
     QCOMPARE(minAllowedValueBeforeLastTicketStop, 0);
 }
-
 
 #include "TicketDrawExecutor_Tests.moc"
 

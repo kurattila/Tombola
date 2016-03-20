@@ -44,6 +44,7 @@ private:
 protected:
     int remainingPrizesCount() const;
     int minAllowedRemainingPrizesCount() const;
+    int maxAllowedRemainingPrizesCount() const;
 
 signals:
     void ticketDrawLeftChanged();
