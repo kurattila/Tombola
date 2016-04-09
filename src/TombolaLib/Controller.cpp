@@ -2,6 +2,7 @@
 #include "Controller.h"
 #include "TombolaDocument.h"
 #include "TicketsBlocksSet.h"
+#include "TicketDrawExecutor.h"
 
 #include <QFile>
 #include <QtNetwork/QHostInfo>
@@ -23,15 +24,21 @@ void Controller::checkNewVersion()
     mgr->get(QNetworkRequest(QUrl(requestString)));
 }
 
-Controller::Controller(TombolaDocument& document, QObject *parent)
+Controller::Controller(TombolaDocument& document, TicketDrawExecutor& ticketDrawExecutor, QObject *parent)
     : QObject(parent)
     , m_TombolaDocument(document)
+    , m_TicketDrawExecutor(ticketDrawExecutor)
     , m_Serializer(document)
 { }
 
 void Controller::OnAppStartup()
 {
     checkNewVersion();
+
+    connect(&m_TombolaDocument, &TombolaDocument::ticketDrawExecutorSaveToMemento
+          , [this](IMemento*& memento){ memento = m_TicketDrawExecutor.SaveToMemento(); });
+    connect(&m_TombolaDocument, &TombolaDocument::ticketDrawExecutorRestoreFromMemento
+          , [this](const IMemento* memento){ return m_TicketDrawExecutor.RestoreFromMemento(memento); });
 
     // Read from XML
     std::unique_ptr<QFile> file(new QFile(Controller::XmlFullPath));

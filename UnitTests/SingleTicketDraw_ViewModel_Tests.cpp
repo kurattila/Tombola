@@ -23,6 +23,8 @@ private slots:
     void onTriggerByUser_WillRejectQuery_WhenTicketSpinning();
     void onTriggerByUser_WillAcceptQuery_WhenWinningTicketShown();
     void onTriggerByUser_WillRejectQuery_DuringWinningTicketVanishing();
+
+    void onWinningTicketStateAchieved_WillCommitDrawnTicket_Always();
 };
 
 void SingleTicketDraw_ViewModel_Test::Init_WillClearPreviousWinningTickets_WhenPrizeDrawingRepeated()
@@ -30,7 +32,7 @@ void SingleTicketDraw_ViewModel_Test::Init_WillClearPreviousWinningTickets_WhenP
     TicketsBlock block(100);
     std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block), std::make_shared<Ticket>(2, block) };
     InGameTicketsRepository ticketsRepository;
-    ticketsRepository.Init(tickets);
+    ticketsRepository.Reset(tickets);
     SingleTicketDraw_ViewModel singleTicketDrawVM;
 
     singleTicketDrawVM.Init(&ticketsRepository);
@@ -48,7 +50,7 @@ void SingleTicketDraw_ViewModel_Test::Init_WillResetQmlTicketPosition_WhenPrizeD
     TicketsBlock block(100);
     std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block), std::make_shared<Ticket>(2, block) };
     InGameTicketsRepository ticketsRepository;
-    ticketsRepository.Init(tickets);
+    ticketsRepository.Reset(tickets);
     SingleTicketDraw_ViewModel singleTicketDrawVM;
 
     singleTicketDrawVM.Init(&ticketsRepository);
@@ -66,7 +68,7 @@ void SingleTicketDraw_ViewModel_Test::Init_WillResetTicketDrawState_WhenPrizeDra
     TicketsBlock block(100);
     std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block), std::make_shared<Ticket>(2, block) };
     InGameTicketsRepository ticketsRepository;
-    ticketsRepository.Init(tickets);
+    ticketsRepository.Reset(tickets);
     SingleTicketDraw_ViewModel singleTicketDrawVM;
 
     singleTicketDrawVM.Init(&ticketsRepository);
@@ -82,7 +84,7 @@ void SingleTicketDraw_ViewModel_Test::onTriggerByUser_WillAcceptQuery_WhenRightA
     TicketsBlock block(100);
     std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block) };
     InGameTicketsRepository ticketsRepository;
-    ticketsRepository.Init(tickets);
+    ticketsRepository.Reset(tickets);
     SingleTicketDraw_ViewModel singleTicketDrawVM;
     singleTicketDrawVM.Init(&ticketsRepository);
 
@@ -96,7 +98,7 @@ void SingleTicketDraw_ViewModel_Test::onTriggerByUser_WillRejectQuery_WhenTicket
     TicketsBlock block(100);
     std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block) };
     InGameTicketsRepository ticketsRepository;
-    ticketsRepository.Init(tickets);
+    ticketsRepository.Reset(tickets);
     SingleTicketDraw_ViewModel singleTicketDrawVM;
     singleTicketDrawVM.Init(&ticketsRepository);
 
@@ -111,7 +113,7 @@ void SingleTicketDraw_ViewModel_Test::onTriggerByUser_WillAcceptQuery_WhenWinnin
     TicketsBlock block(100);
     std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block) };
     InGameTicketsRepository ticketsRepository;
-    ticketsRepository.Init(tickets);
+    ticketsRepository.Reset(tickets);
     SingleTicketDraw_ViewModel singleTicketDrawVM;
     singleTicketDrawVM.Init(&ticketsRepository);
 
@@ -127,7 +129,7 @@ void SingleTicketDraw_ViewModel_Test::onTriggerByUser_WillRejectQuery_DuringWinn
     TicketsBlock block(100);
     std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block) };
     InGameTicketsRepository ticketsRepository;
-    ticketsRepository.Init(tickets);
+    ticketsRepository.Reset(tickets);
     SingleTicketDraw_ViewModel singleTicketDrawVM;
     singleTicketDrawVM.Init(&ticketsRepository);
 
@@ -140,12 +142,27 @@ void SingleTicketDraw_ViewModel_Test::onTriggerByUser_WillRejectQuery_DuringWinn
     QCOMPARE(result, SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected);
 }
 
+void SingleTicketDraw_ViewModel_Test::onWinningTicketStateAchieved_WillCommitDrawnTicket_Always()
+{
+    TicketsBlock block(100);
+    std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block) };
+    InGameTicketsRepository ticketsRepository;
+    ticketsRepository.Reset(tickets);
+    SingleTicketDraw_ViewModel singleTicketDrawVM;
+    singleTicketDrawVM.Init(&ticketsRepository);
+
+    singleTicketDrawVM.onTriggerByUser(); // will make the ticket spin
+    singleTicketDrawVM.onWinningTicketStateAchieved(); // spinning just stopped
+
+    QCOMPARE(ticketsRepository.GetWinningTicketsHistory().size(), 1U);
+}
+
 void SingleTicketDraw_ViewModel_Test::Init_WontTryToRemoveAnyRows_WhenZeroRowsShallBeRemoved()
 {
     TicketsBlock block(100);
     std::list<std::shared_ptr<Ticket>> tickets = { std::make_shared<Ticket>(1, block) };
     InGameTicketsRepository ticketsRepository;
-    ticketsRepository.Init(tickets);
+    ticketsRepository.Reset(tickets);
     SingleTicketDraw_ViewModel singleTicketDrawVM;
     QSignalSpy signalSpy(&singleTicketDrawVM, SIGNAL(rowsAboutToBeRemoved()));
 

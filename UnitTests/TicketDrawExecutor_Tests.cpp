@@ -17,6 +17,9 @@ private slots:
     void onPrizeDrawingStartUp_WillCallInitOfSingleTicketDrawVMs_Always();
     void onPrizeDrawingStartUp_WillPassNonEmptyRepositoryToSingleTicketDrawVMs_Always();
     void onPrizeDrawingStartUp_WillClearSpinningStatuses_WhenCalledRepeatedly();
+    void onPrizeDrawingStartup_WontClearSpinningCount_WhenRestoredFromMementoHavingSingleSpinningTicket();
+    void onPrizeDrawingStartup_WontTouchRemainingPrizesCount_WhenRestoredFromMemento();
+    void onPrizeDrawingStartup_WontResetInGameTicketsRepository_WhenRestoredFromMemento();
 
     void remainingPrizesCount_ReturnsTotalPrizesCount_WhenNoTicketDrawExecutedYet();
     void remainingPrizesCount_WillReturnOneLess_WhenOneTicketAchievedTheWinningState();
@@ -24,7 +27,7 @@ private slots:
     void remainingPrizesCount_WillReturnTen_IfPrizesCountChangedToTenBeforeStartUpWasCalled();
     void remainingPrizesCount_WillReturnTotalPrizesCount_WhenPrizeDrawingHasBeenRestarted();
 
-    void setRemainigPrizesCount_WillBeCoercedToMaxValue_WhenMorePrizesThanSoldTickets();
+    void setRemainingPrizesCount_WillBeCoercedToMaxValue_WhenMorePrizesThanSoldTickets();
 
     void onTriggerByUser_WillQueryTicketDrawLeftOnly_ByDefault();
     void onTriggerByUser_WillQueryTicketDrawRight_WhenTicketDrawLeftRejectsTheRequest();
@@ -38,6 +41,10 @@ private slots:
     void minAllowedRemainingPrizesCount_ComesBackToOneAgain_WhenOneOf2TicketsStopsSpinning();
     void minAllowedRemainingPrizesCount_ComesBackToZeroAgain_WhenBothTicketsStopSpinning();
     void minAllowedRemainingPrizesCount_ComesBackToZeroYetBeforeRemainingPrizesCountGoesToZero_WhenTicketForLastPrizeStopsSpinning();
+
+    void IsPrizeDrawingRunning_ReturnsFalse_ByDefault();
+    void IsPrizeDrawingRunning_ReturnsTrue_WhenPrizeDrawingStartedUp();
+    void IsPrizeDrawingRunning_ReturnsFalse_WhenPrizeDrawingAborted();
 };
 
 class FakeBase_SingleTicketDraw_ViewModel : public SingleTicketDraw_ViewModel
@@ -48,7 +55,8 @@ public:
     {}
     void ForceEmitTicketWinningPositionRequested()
     {
-        emit ticketWinningPositionRequested();
+        std::shared_ptr<Ticket> dummyTicket;
+        emit ticketWinningPositionRequested(dummyTicket);
     }
 };
 
@@ -125,12 +133,120 @@ void TicketDrawExecutor_Test::onPrizeDrawingStartUp_WillClearSpinningStatuses_Wh
     ticketDrawLeft->CalledOnTriggerByUser = false;
     ticketDrawRight->CalledOnTriggerByUser = false;
 
+    ticketDrawExecutor.onPrizeDrawingAborted(); // go back to ticket selling point first, in order to restart prize drawing
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     ticketDrawExecutor.onTriggerByUser(); // will call ticketDrawLeft->onTriggerByUser() only if not spinning, because only 2 prizes exist
     ticketDrawExecutor.onTriggerByUser(); // will call ticketDrawRight->onTriggerByUser() only if not spinning, because only 2 prizes exist
     QVERIFY(ticketDrawLeft->CalledOnTriggerByUser);
     QVERIFY(ticketDrawRight->CalledOnTriggerByUser);
+}
+
+void TicketDrawExecutor_Test::onPrizeDrawingStartup_WontClearSpinningCount_WhenRestoredFromMementoHavingSingleSpinningTicket()
+{
+    TombolaDocument origiDocument;
+    origiDocument.PrizesCount = 2;
+    auto origiTicketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto origiTicketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    origiTicketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    origiTicketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    TicketDrawExecutor origiTicketDrawExecutor(origiDocument, origiTicketDrawLeft, origiTicketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    origiTicketDrawExecutor.onPrizeDrawingStartUp();
+    origiTicketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    origiTicketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // LEFT will reject while spinning
+    std::unique_ptr<IMemento> mem(origiTicketDrawExecutor.SaveToMemento());
+
+    TombolaDocument document;
+    document.PrizesCount = 2;
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    ticketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // LEFT will reject while spinning
+    ticketDrawExecutor.onTriggerByUser(); // spin up RIGHT
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // RIGHT will reject while spinning
+    ticketDrawExecutor.RestoreFromMemento(mem.get());
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+
+    // only 1 is spinning instead of 2 now, because Memento carried the snapshot of 1 spinning ticket only
+    QCOMPARE(ticketDrawExecutor.property("minAllowedRemainingPrizesCount").toInt(), 1);
+}
+
+void TicketDrawExecutor_Test::onPrizeDrawingStartup_WontTouchRemainingPrizesCount_WhenRestoredFromMemento()
+{
+    TombolaDocument origiDocument;
+    origiDocument.PrizesCount = 2;
+    auto origiTicketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto origiTicketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    origiTicketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    origiTicketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    TicketDrawExecutor origiTicketDrawExecutor(origiDocument, origiTicketDrawLeft, origiTicketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    origiTicketDrawExecutor.onPrizeDrawingStartUp();
+    origiTicketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    origiTicketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // LEFT will reject while spinning
+    origiTicketDrawExecutor.setProperty("remainingPrizesCount", 10); // pump up prizes count from 2 to 10
+    std::unique_ptr<IMemento> mem(origiTicketDrawExecutor.SaveToMemento());
+
+    TombolaDocument document;
+    document.PrizesCount = 2;
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    ticketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // LEFT will reject while spinning
+    ticketDrawExecutor.onTriggerByUser(); // spin up RIGHT
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // RIGHT will reject while spinning
+    ticketDrawExecutor.RestoreFromMemento(mem.get());
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+
+    // RestoreFromMemento() dictates 10 remaining prizes, not just 2
+    QCOMPARE(ticketDrawExecutor.property("remainingPrizesCount").toInt(), 10);
+}
+
+void TicketDrawExecutor_Test::onPrizeDrawingStartup_WontResetInGameTicketsRepository_WhenRestoredFromMemento()
+{
+    TombolaDocument origiDocument;
+    origiDocument.PrizesCount = 2;
+    auto origiBlock = origiDocument.AllTicketsBlocksSet->AddBlock();
+    origiBlock->SetTicketSold(5, true);
+    origiBlock->SetTicketSold(6, true);
+    auto origiTicketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto origiTicketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    origiTicketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    origiTicketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    TicketDrawExecutor origiTicketDrawExecutor(origiDocument, origiTicketDrawLeft, origiTicketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    origiTicketDrawExecutor.onPrizeDrawingStartUp();
+    origiTicketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    origiTicketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // LEFT will reject while spinning
+    origiTicketDrawExecutor.setProperty("remainingPrizesCount", 10); // pump up prizes count from 2 to 10
+    std::unique_ptr<IMemento> mem(origiTicketDrawExecutor.SaveToMemento());
+
+    TombolaDocument document;
+    document.PrizesCount = 2;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    block->SetTicketSold(7, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    ticketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    ticketDrawLeft->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // LEFT will reject while spinning
+    ticketDrawExecutor.onTriggerByUser(); // spin up RIGHT
+    ticketDrawRight->ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Rejected; // RIGHT will reject while spinning
+    ticketDrawExecutor.RestoreFromMemento(mem.get());
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+
+    QCOMPARE(ticketDrawLeft->PrivateInGameRepository()->GetTicketsStillInGame().size(), 2U);
 }
 
 void TicketDrawExecutor_Test::remainingPrizesCount_ReturnsTotalPrizesCount_WhenNoTicketDrawExecutedYet()
@@ -229,13 +345,14 @@ void TicketDrawExecutor_Test::remainingPrizesCount_WillReturnTotalPrizesCount_Wh
     ticketDrawExecutor.onTriggerByUser(); // spin up RIGHT
     ticketDrawLeft->ForceEmitTicketWinningPositionRequested();
     ticketDrawRight->ForceEmitTicketWinningPositionRequested();
+    ticketDrawExecutor.onPrizeDrawingAborted();
     ticketDrawExecutor.onPrizeDrawingStartUp(); // restart prize drawing after remaining count has been zeroed!
 
     int remainingPrizes = ticketDrawExecutor.property("remainingPrizesCount").toInt();
     QCOMPARE(remainingPrizes, totalPrizesCount);
 }
 
-void TicketDrawExecutor_Test::setRemainigPrizesCount_WillBeCoercedToMaxValue_WhenMorePrizesThanSoldTickets()
+void TicketDrawExecutor_Test::setRemainingPrizesCount_WillBeCoercedToMaxValue_WhenMorePrizesThanSoldTickets()
 {
     const int totalPrizesCount = 3;
     TombolaDocument document;
@@ -530,6 +647,57 @@ void TicketDrawExecutor_Test::minAllowedRemainingPrizesCount_ComesBackToZeroYetB
     ticketDrawLeft->ForceEmitTicketWinningPositionRequested(); // WinningPosition achieved
 
     QCOMPARE(minAllowedValueBeforeLastTicketStop, 0);
+}
+
+void TicketDrawExecutor_Test::IsPrizeDrawingRunning_ReturnsFalse_ByDefault()
+{
+    const int totalPrizesCount = 1;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    bool prizeDrawingRunning = ticketDrawExecutor.IsPrizeDrawingRunning();
+
+    QCOMPARE(prizeDrawingRunning, false);
+}
+
+void TicketDrawExecutor_Test::IsPrizeDrawingRunning_ReturnsTrue_WhenPrizeDrawingStartedUp()
+{
+    const int totalPrizesCount = 1;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    bool prizeDrawingRunning = ticketDrawExecutor.IsPrizeDrawingRunning();
+
+    QCOMPARE(prizeDrawingRunning, true);
+}
+
+void TicketDrawExecutor_Test::IsPrizeDrawingRunning_ReturnsFalse_WhenPrizeDrawingAborted()
+{
+    const int totalPrizesCount = 1;
+    TombolaDocument document;
+    document.PrizesCount = totalPrizesCount;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    ticketDrawExecutor.onPrizeDrawingAborted();
+    bool prizeDrawingRunning = ticketDrawExecutor.IsPrizeDrawingRunning();
+
+    QCOMPARE(prizeDrawingRunning, false);
 }
 
 #include "TicketDrawExecutor_Tests.moc"

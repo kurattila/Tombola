@@ -1,11 +1,13 @@
 #include "TombolaDocument.h"
 #include "TicketsBlock.h"
+#include "TicketDrawExecutor.h"
 
 #include <QStringBuilder>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
-TombolaDocument::TombolaDocument()
+TombolaDocument::TombolaDocument(QObject *parent)
+    : QObject(parent)
 {
     AllTicketsBlocksSet = std::make_shared<TicketsBlocksSet>();
 }
@@ -20,10 +22,15 @@ IMemento *TombolaDocument::SaveToMemento()
     auto memento = new TombolaMemento();
     memento->PrizesCount = PrizesCount;
     memento->AllTicketsBlocksSet = AllTicketsBlocksSet;
+
+    IMemento* prizeDrawingMemento = nullptr;
+    emit ticketDrawExecutorSaveToMemento(prizeDrawingMemento);
+    memento->TicketDrawExecMemento.reset(prizeDrawingMemento);
+
     return memento;
 }
 
-void TombolaDocument::RestoreFromMemento(const IMemento *memento)
+void TombolaDocument::RestoreFromMemento(const IMemento *memento, void* /*context*/)
 {
     const TombolaMemento* mem = dynamic_cast<const TombolaMemento*>(memento);
     if (!mem)
@@ -31,10 +38,12 @@ void TombolaDocument::RestoreFromMemento(const IMemento *memento)
 
     PrizesCount = mem->PrizesCount;
     AllTicketsBlocksSet = mem->AllTicketsBlocksSet;
+    emit ticketDrawExecutorRestoreFromMemento(mem->TicketDrawExecMemento.get());
 }
 
 TombolaMemento::TombolaMemento()
     : AllTicketsBlocksSet(std::make_shared<TicketsBlocksSet>())
+    , TicketDrawExecMemento(new TicketDrawExecutorMemento())
 {
 
 }
@@ -65,6 +74,10 @@ void TombolaMemento::Read(QXmlStreamReader &xmlReader)
             for (auto it = ticketIds.constBegin(); it != ticketIds.constEnd(); ++it)
                 block->SetTicketSold(it->toInt(), true);
         }
+        else if (tokenType == QXmlStreamReader::StartElement && xmlReader.name() == TicketDrawExecutorMemento::StartElementXmlName)
+        {
+            TicketDrawExecMemento->Read(xmlReader);
+        }
 
         if (tokenType == QXmlStreamReader::EndElement && xmlReader.name() == "Tombola")
             break;
@@ -90,6 +103,7 @@ void TombolaMemento::Write(QXmlStreamWriter &xmlWriter)
 
         block = AllTicketsBlocksSet->GetNextBlock(block);
     }
+    TicketDrawExecMemento->Write(xmlWriter);
 
     xmlWriter.writeEndElement(); // </Tombola>
 }

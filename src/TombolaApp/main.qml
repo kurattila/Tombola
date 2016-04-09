@@ -13,7 +13,11 @@ ApplicationWindow {
 
     property int stageTransitionAnimationDuration
 
-    Component.onCompleted: stageTransitionAnimationDuration = 1000
+    Component.onCompleted: {
+        stageTransitionAnimationDuration = 0; // transition will be instant when app starts up to prize drawing
+        ticketsSellingPoint.componentOnCompleted();
+        stageTransitionAnimationDuration = 1000;
+    }
 
     MessageDialog {
         property int indexToBeDeleted
@@ -35,6 +39,16 @@ ApplicationWindow {
             stageOfPrizeDrawing.state = "invisible";
             stageOfTicketsInput.state = "visible";
 //            stageOfTicketsInput.forceActiveFocus();
+        }
+    }
+
+    function proceedToPrizeDrawing()
+    {
+        if (ticketsSellingPoint.canProceedToPrizeDrawing)
+        {
+            stageOfTicketsInput.state = "invisible";
+            stageOfPrizeDrawing.state = "visible";
+            stageOfPrizeDrawing.forceActiveFocus() // important to move focus from block name input to Action of "space" which will start prize drawing!
         }
     }
 
@@ -168,13 +182,13 @@ ApplicationWindow {
                 Behavior on opacity {
                     NumberAnimation { duration: appWindow.stageTransitionAnimationDuration }
                 }
-                onClicked:
+                onClicked: proceedToPrizeDrawing()
+                Connections
                 {
-                    if (ticketsSellingPoint.canProceedToPrizeDrawing)
-                    {
-                        stageOfTicketsInput.state = "invisible";
-                        stageOfPrizeDrawing.state = "visible";
-                        stageOfPrizeDrawing.forceActiveFocus() // important to move focus from block name input to Action of "space" which will start prize drawing!
+                    target: ticketsSellingPoint
+                    onProceedToPrizeDrawingRequested: {
+//                        console.log("onProceedToPrizeDrawingRequested()");
+                        proceedToPrizeDrawing();
                     }
                 }
             }
@@ -461,6 +475,7 @@ ApplicationWindow {
                         duration: appWindow.stageTransitionAnimationDuration / 2
                     }
                     PropertyAction { target: stageOfPrizeDrawing; property: "visible"; value: false }
+                    ScriptAction { script: ticketDrawExecutor.onPrizeDrawingAborted(); }
                 }
             }
         ]

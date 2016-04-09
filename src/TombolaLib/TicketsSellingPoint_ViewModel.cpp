@@ -7,15 +7,26 @@ TicketsSellingPoint_ViewModel::TicketsSellingPoint_ViewModel(TombolaDocument& do
     : QAbstractListModel(parent)
     , m_TombolaDocument(document)
 {
-    m_CurrentTicketsBlock = m_TombolaDocument.AllTicketsBlocksSet->GetFirstBlock();
     m_BlockColorsSet_ViewModel.reset(new BlockColorsSet_ViewModel(parent));
     m_TicketsBlockSelection_ViewModel.reset(new TicketsBlockSelection_ViewModel(m_TombolaDocument.AllTicketsBlocksSet, this, parent));
+}
+
+void TicketsSellingPoint_ViewModel::Init(bool isPrizeDrawingRunning)
+{
+    m_StartUpStraightIntoPrizeDrawing = isPrizeDrawingRunning;
+    m_CurrentTicketsBlock = m_TombolaDocument.AllTicketsBlocksSet->GetFirstBlock();
 
     m_TicketsBlockSelection_ViewModel->doTicketsBlockSelection(getBlockIndex());
 
     connect(m_TicketsBlockSelection_ViewModel.get(), SIGNAL(rowSelected(int)), this, SLOT(onTicketsBlockSelected(int)));
     connect(m_TicketsBlockSelection_ViewModel.get(), SIGNAL(rowsInserted(const QModelIndex&,int,int)), this, SLOT(onTicketsBlocksInserted(const QModelIndex&,int,int)));
     connect(m_TicketsBlockSelection_ViewModel.get(), SIGNAL(rowsRemoved(const QModelIndex&,int,int)), this, SLOT(onTicketsBlocksRemoved(const QModelIndex&,int,int)));
+}
+
+void TicketsSellingPoint_ViewModel::componentOnCompleted()
+{
+    if (m_StartUpStraightIntoPrizeDrawing)
+        emit proceedToPrizeDrawingRequested();
 }
 
 void TicketsSellingPoint_ViewModel::doColorSelection(int colorIndex)
@@ -45,11 +56,6 @@ void TicketsSellingPoint_ViewModel::endRangeOperation(int endTicketId)
 {
     rangeOperationInProgress(endTicketId);
     m_CurrentTicketsBlock->EndRangeOperation(endTicketId);
-}
-
-void TicketsSellingPoint_ViewModel::proceedToPrizeDrawing()
-{
-
 }
 
 int TicketsSellingPoint_ViewModel::rowCount(const QModelIndex& /*parent*/) const

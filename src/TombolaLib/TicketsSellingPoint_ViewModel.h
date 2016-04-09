@@ -20,10 +20,14 @@ class TOMBOLALIBSHARED_EXPORT TicketsSellingPoint_ViewModel : public QAbstractLi
 public:
     explicit TicketsSellingPoint_ViewModel(TombolaDocument& document, QObject *parent = 0);
 
+    void Init(bool isPrizeDrawingRunning);
+
     enum TicketRoles
     {
         IsSoldRole = Qt::UserRole + 1
     };
+
+    Q_INVOKABLE void componentOnCompleted();
 
     Q_PROPERTY(QString blockName READ getBlockName WRITE setBlockName NOTIFY blockNameChanged)
     Q_PROPERTY(int blockIndex READ getBlockIndex NOTIFY blockIndexChanged)
@@ -46,7 +50,6 @@ public:
     Q_PROPERTY(TicketsBlockSelection_ViewModel* blockSelectionList READ getBlockSelectionList NOTIFY blockSelectionListChanged)
 
     Q_PROPERTY(bool canProceedToPrizeDrawing READ canProceedToPrizeDrawing NOTIFY canProceedToPrizeDrawingChanged)
-    Q_INVOKABLE void proceedToPrizeDrawing();
 
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
@@ -77,6 +80,8 @@ protected:
     TicketsBlockSelection_ViewModel* getBlockSelectionList() const;
 
 signals:
+    void proceedToPrizeDrawingRequested();
+
     void colorsCountChanged();
 
     void blockNameChanged();
@@ -104,6 +109,7 @@ private:
     std::shared_ptr<TicketsBlock> m_CurrentTicketsBlock;
     std::unique_ptr<BlockColorsSet_ViewModel> m_BlockColorsSet_ViewModel;
     std::unique_ptr<TicketsBlockSelection_ViewModel> m_TicketsBlockSelection_ViewModel;
+    bool m_StartUpStraightIntoPrizeDrawing = false;
 
     void notifyAboutTicketsBlockChanged();
 };

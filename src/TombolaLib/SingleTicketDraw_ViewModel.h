@@ -87,7 +87,7 @@ protected:
 signals:
     void ticketStartupPositionRequested();
     void ticketFlyThroughRequested();
-    void ticketWinningPositionRequested();
+    void ticketWinningPositionRequested(const std::shared_ptr<Ticket>& ticket);
     void ticketVanishRequested();
 
     void flyingTicketBgColorChanged();

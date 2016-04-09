@@ -15,7 +15,7 @@ class IMementoOriginator
 {
 public:
     virtual IMemento* SaveToMemento() = 0;
-    virtual void RestoreFromMemento(const IMemento* memento) = 0;
+    virtual void RestoreFromMemento(const IMemento* memento, void* context = nullptr) = 0;
 };
 
 #endif // IMEMENTO_H

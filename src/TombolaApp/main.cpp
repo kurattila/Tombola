@@ -21,14 +21,17 @@ int main(int argc, char *argv[])
     qInfo() << "\n\n" << "========== Startup ==========";
 
     TombolaDocument document;
-    Controller controller(document);
-    controller.OnAppStartup();
 
-    TicketsSellingPoint_ViewModel ticketsSellingPoint_ViewModel(document);
 //    qmlRegisterType<BlockColorsSet_ViewModel>("com.quatso.tombola", 1, 0, "BlockColorSetListModel");
     TicketDrawExecutor ticketDrawExecutor(  document
                                           , new SingleTicketDraw_ViewModel()
                                           , new SingleTicketDraw_ViewModel());
+
+    Controller controller(document, ticketDrawExecutor);
+    controller.OnAppStartup();
+
+    TicketsSellingPoint_ViewModel ticketsSellingPoint_ViewModel(document);
+    ticketsSellingPoint_ViewModel.Init(ticketDrawExecutor.IsPrizeDrawingRunning());
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("ticketsSellingPoint", QVariant::fromValue(&ticketsSellingPoint_ViewModel));

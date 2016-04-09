@@ -88,7 +88,7 @@ void SingleTicketDraw_ViewModel::onStartSingleTicketDraw()
     auto untouchedTickets = m_InGameTicketsRepository->GetTicketsStillInGame();
     m_RandomTicketDraw.Init(SingleTicketDraw_ViewModel::DefaultStepsCountOfDraw, untouchedTickets);
     auto winningTicket = m_RandomTicketDraw.GetWinningTicket();
-    m_InGameTicketsRepository->OnTicketDrawn(winningTicket);
+    m_InGameTicketsRepository->OnTicketDrawnPrepare(winningTicket);
 
     auto flyThroughTicket = m_RandomTicketDraw.GetNextPresentableTicket();
     setCurrentFlyThroughTicket(flyThroughTicket);
@@ -100,13 +100,14 @@ void SingleTicketDraw_ViewModel::onFlyUpTicketStateAchieved()
     auto flyThroughTicket = m_RandomTicketDraw.GetNextPresentableTicket();
     setCurrentFlyThroughTicket(flyThroughTicket);
     if (m_RandomTicketDraw.IsDone())
-        emit ticketWinningPositionRequested();
+        emit ticketWinningPositionRequested(flyThroughTicket);
     else
         emit ticketFlyThroughRequested();
 }
 
 void SingleTicketDraw_ViewModel::onWinningTicketStateAchieved()
 {
+    m_InGameTicketsRepository->OnTicketDrawnCommit(m_CurrentFlyThroughTicket);
     m_TicketDrawState = TicketDrawState::WinningTicketShown;
 }
 

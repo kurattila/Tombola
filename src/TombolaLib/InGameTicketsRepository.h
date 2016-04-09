@@ -3,10 +3,32 @@
 
 #include "tombolalib_global.h"
 #include "Ticket.h"
+#include "TicketsBlocksSet.h"
 #include <list>
+#include <map>
+#include <set>
 #include <memory>
+#include "IMemento.h"
+#include <QString>
 
-class TOMBOLALIBSHARED_EXPORT InGameTicketsRepository
+class TOMBOLALIBSHARED_EXPORT InGameTicketsRepositoryMemento : public IMemento
+{
+    friend class InGameTicketsRepository;
+
+    std::map<TicketsBlocksSet::TicketsBlockIdentification, std::set<int>> m_MapOfStillInGameTickets;
+
+public:
+    static QString StartElementXmlName;
+
+    InGameTicketsRepositoryMemento();
+    virtual ~InGameTicketsRepositoryMemento();
+
+    // IMemento interface
+    virtual void Read(QXmlStreamReader& xmlReader);
+    virtual void Write(QXmlStreamWriter& xmlWriter);
+};
+
+class TOMBOLALIBSHARED_EXPORT InGameTicketsRepository : public IMementoOriginator
 {
     std::list<std::shared_ptr<Ticket>> m_UntouchedTickets;
     std::list<std::shared_ptr<Ticket>> m_WinningTickets;
@@ -14,10 +36,15 @@ class TOMBOLALIBSHARED_EXPORT InGameTicketsRepository
 public:
     InGameTicketsRepository();
 
-    void Init(const std::list<std::shared_ptr<Ticket>>& untouchedTickets);
-    void OnTicketDrawn(std::shared_ptr<Ticket> winningTicket);
+    void Reset(const std::list<std::shared_ptr<Ticket>>& untouchedTickets);
+    void OnTicketDrawnPrepare(const std::shared_ptr<Ticket>& winningTicket);
+    void OnTicketDrawnCommit (const std::shared_ptr<Ticket>& winningTicket);
     const std::list<std::shared_ptr<Ticket>>& GetTicketsStillInGame() const;
     const std::list<std::shared_ptr<Ticket>>& GetWinningTicketsHistory() const;
+
+    // IMementoOriginator interface
+    virtual IMemento* SaveToMemento() override;
+    virtual void RestoreFromMemento(const IMemento* memento, void* context = nullptr) override;
 };
 
 #endif // INGAMETICKETSREPOSITORY_H

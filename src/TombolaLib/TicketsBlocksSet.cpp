@@ -45,9 +45,9 @@ std::shared_ptr<TicketsBlock> TicketsBlocksSet::GetNextBlock(std::shared_ptr<Tic
     return nextBlock;
 }
 
-std::shared_ptr<TicketsBlock> TicketsBlocksSet::AddBlock()
+std::shared_ptr<TicketsBlock> TicketsBlocksSet::AddBlock(int ticketsPerBlock /*= TicketsBlockFactory::DefaultTicketsPerBlock*/)
 {
-    auto newBlockRaw = m_TicketsBlockFactory.CreateSingleBlock( TicketsBlockFactory::DefaultTicketsPerBlock );
+    auto newBlockRaw = m_TicketsBlockFactory.CreateSingleBlock( ticketsPerBlock );
 
     std::shared_ptr<TicketsBlock> newBlock(newBlockRaw);
     m_AllBlocks.push_back(newBlock);
@@ -92,4 +92,16 @@ int TicketsBlocksSet::FindBlockIndex(std::shared_ptr<TicketsBlock> block) const
 std::shared_ptr<TicketsBlock> TicketsBlocksSet::GetBlock(int blockIndex) const
 {
     return m_AllBlocks[blockIndex];
+}
+
+std::shared_ptr<TicketsBlock> TicketsBlocksSet::FindBlock(const TicketsBlocksSet::TicketsBlockIdentification& blockIdToFind) const
+{
+    const auto& itFound = std::find_if(  m_AllBlocks.begin()
+                                       , m_AllBlocks.end()
+                                       , [&](const std::shared_ptr<TicketsBlock>& block)
+    {
+        return blockIdToFind.first == block->Name && blockIdToFind.second == block->ColorsSetIndex;
+    });
+
+    return *itFound;
 }
