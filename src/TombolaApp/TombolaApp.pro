@@ -14,10 +14,16 @@ TARGET = TombolaApp
 TEMPLATE = app
 
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    DynamicTranslation.cpp
 
 HEADERS  += \
-    version.h
+    version.h \
+    DynamicTranslation.h
+
+lupdate_only {
+SOURCES = main.qml
+}
 
 FORMS    +=
 

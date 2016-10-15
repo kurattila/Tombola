@@ -141,7 +141,7 @@ void TicketsBlockFactory_Test::CreateSingleBlock_WillCreateBlockCalledUntitled_W
 
     std::unique_ptr<TicketsBlock> block(blockFactory.CreateSingleBlock(50));
 
-    QCOMPARE(block->Name, QString("Névtelen tömb"));
+    QCOMPARE(block->Name, QString("Unnamed block"));
 }
 
 void TicketsBlockFactory_Test::CreateSingleBlock_WillCreateBlockCalledUntitled_WhenSecondAndLaterBlocksCreated()
@@ -151,7 +151,7 @@ void TicketsBlockFactory_Test::CreateSingleBlock_WillCreateBlockCalledUntitled_W
     blockFactory.CreateSingleBlock(50);
     std::unique_ptr<TicketsBlock> block(blockFactory.CreateSingleBlock(50));
 
-    QCOMPARE(block->Name, QString("Névtelen tömb 2"));
+    QCOMPARE(block->Name, QString("Unnamed block 2"));
 }
 
 #include "TicketsBlockFactory_Tests.moc"

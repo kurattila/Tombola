@@ -13,10 +13,12 @@
 #include "TicketDrawExecutor.h"
 #include "SingleTicketDraw_ViewModel.h"
 #include "Logger.h"
+#include "DynamicTranslation.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    DynamicTranslation dynamicTranslation(app);
     Logger::Init("Tombola.log.txt");
     qInfo() << "\n\n" << "========== Startup ==========";
 
@@ -36,6 +38,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("ticketsSellingPoint", QVariant::fromValue(&ticketsSellingPoint_ViewModel));
     engine.rootContext()->setContextProperty("ticketDrawExecutor", QVariant::fromValue(&ticketDrawExecutor));
+    engine.rootContext()->setContextProperty("dynamicTranslation", &dynamicTranslation);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     QIcon appIcon(":///Images/TombolaAppIcon.png");

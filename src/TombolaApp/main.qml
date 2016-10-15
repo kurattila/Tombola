@@ -9,7 +9,7 @@ ApplicationWindow {
     visible: true
     width: 1200
     height: 800
-    title: qsTr("Tombola")
+    title: qsTr("Tombola") + dynamicTranslation.emptyString
 
     property int stageTransitionAnimationDuration
 
@@ -23,8 +23,8 @@ ApplicationWindow {
         property int indexToBeDeleted
         id: deleteBlockMsgBox
         icon: StandardIcon.Question
-        title: "Tombola"
-        text: "Tutira törölhető az egész tömb?\n(" + ticketsSellingPoint.oneBlockSoldTickets + " db eladott jegyet tartalmaz)"
+        title: qsTr("Tombola") + dynamicTranslation.emptyString
+        text: qsTr("Are you sure to delete the whole ticket block?\n(contains %1 sold tickets)").arg(ticketsSellingPoint.oneBlockSoldTickets) + dynamicTranslation.emptyString
         standardButtons: StandardButton.Yes | StandardButton.No
         onYes: ticketsSellingPoint.blockSelectionList.doDeleteRow(indexToBeDeleted);
     }
@@ -32,8 +32,8 @@ ApplicationWindow {
     MessageDialog {
         id: cancelPrizeDrawingMsgBox
         icon: StandardIcon.Question
-        title: "Tombola"
-        text: "Végképp megszakítod a sorsolást?"
+        title: qsTr("Tombola") + dynamicTranslation.emptyString
+        text: qsTr("Cancel the prizes draw no matter what?") + dynamicTranslation.emptyString
         standardButtons: StandardButton.Yes | StandardButton.No
         onYes: {
             stageOfPrizeDrawing.state = "invisible";
@@ -93,21 +93,38 @@ ApplicationWindow {
             anchors.fill: parent
             MouseArea
             {
-                id: mailToDeveloper
                 property int mailToDeveloperHeight: 15
-                width: mailToLink.width
+                width: mailToLink.width + languageCombo.width
                 height: mailToDeveloperHeight
                 anchors.horizontalCenter: parent.horizontalCenter
                 cursorShape: Qt.PointingHandCursor
 
-                Text
+                Row
                 {
-                    id: mailToLink
-                    //horizontalAlignment: Text.AlignRight
-                    text: '<html><style type="text/css"></style><a href="kur.attila@gmail.com">\u00a9 2016 Kúr Attila</a></html>'
-                    onLinkActivated: Qt.openUrlExternally("mailto:kur.attila@gmail.com?Subject=Tombola")
-                    linkColor: 'brown'
                     opacity: 0.4
+                    spacing: 10
+                    Text
+                    {
+                        id: mailToLink
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: '<html><style type="text/css"></style><a href="kur.attila@gmail.com">\u00a9 2016 Kúr Attila</a></html>'
+                        onLinkActivated: Qt.openUrlExternally("mailto:kur.attila@gmail.com?Subject=Tombola")
+                        linkColor: 'brown'
+                    }
+
+                    ComboBox
+                    {
+                        id: languageCombo
+                        width: 90
+                        textRole: "description"
+                        model: ListModel {
+                            ListElement { localeId: "HU"; image: "Images/Flag_HU.png"; description: "Magyar" }
+                            ListElement { localeId: "SK"; image: "Images/Flag_SK.png"; description: "Slovensky" }
+                            ListElement { localeId: "EN"; image: "Images/Flag_UK.png"; description: "English" }
+                        }
+                        onActivated: dynamicTranslation.selectLanguage(model.get(index).localeId);
+                        Component.onCompleted: dynamicTranslation.selectLanguage(model.get(currentIndex).localeId);
+                    }
                 }
             }
         }
@@ -129,7 +146,7 @@ ApplicationWindow {
                     font.pointSize: 15
                     font.bold: true
                     color: "brown"
-                    text: "Összes jegy: " + ticketsSellingPoint.totalTickets + " db"
+                    text: qsTr("Total tickets: %1 pcs").arg(ticketsSellingPoint.totalTickets) + dynamicTranslation.emptyString
                 }
                 Text
                 {
@@ -137,16 +154,15 @@ ApplicationWindow {
                     font.pointSize: 15
                     font.bold: true
                     color: "brown"
-                    text: "Összes vásárolt jegy: " + ticketsSellingPoint.totalSoldTickets + " db"
+                    text: qsTr("Total sold tickets: %1 pcs").arg(ticketsSellingPoint.totalSoldTickets) + dynamicTranslation.emptyString
                 }
                 SpinBox
                 {
                     id: prizesCountSpinBox
-                    width: 210
+                    width: 300
                     value: ticketsSellingPoint.prizesCount
                     horizontalAlignment: Text.AlignLeft
-                    prefix: "Nyerhető "
-                    suffix: " díj"
+                    prefix: qsTr("Prizes to win:") + " " + dynamicTranslation.emptyString
                     minimumValue: 1
                     maximumValue: 1000
                     stepSize: 1
@@ -199,7 +215,7 @@ ApplicationWindow {
                     font.underline: gotoPrizeDrawing.containsMouse && ticketsSellingPoint.canProceedToPrizeDrawing
                     font.bold: true
                     color: "brown"
-                    text: "Sorsolás indul!"
+                    text: qsTr("Start the draw!") + dynamicTranslation.emptyString
                 }
 
                 opacity: ticketsSellingPoint.canProceedToPrizeDrawing ? 1 : 0
@@ -270,7 +286,7 @@ ApplicationWindow {
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             color: textColor
-                            text: name + "\n" + soldTickets + "/100 eladott"
+                            text: name + "\n" + qsTr("%1/100 sold").arg(soldTickets) + dynamicTranslation.emptyString
                             font.bold: isSelected
                             font.pixelSize: height / 5
                         }
@@ -300,7 +316,7 @@ ApplicationWindow {
                     id: addTicketsBlockButton
                     width: parent.width
                     height: 50
-                    text: "Új tömb hozzáadása"
+                    text: qsTr("Add new block") + dynamicTranslation.emptyString
                     onClicked:
                     {
                         ticketsSellingPoint.blockSelectionList.doAddRow();
@@ -346,7 +362,7 @@ ApplicationWindow {
                         Text
                         {
                             width: 0
-                            text: ticketsSellingPoint.blockIndex + 1 + ". tömb neve: "
+                            text: qsTr("Title of block no. %1:").arg(ticketsSellingPoint.blockIndex + 1) + dynamicTranslation.emptyString
                             color: ticketsSellingPoint.textColor
                         }
 
@@ -822,7 +838,7 @@ ApplicationWindow {
                         font.pointSize: 28
                         font.bold: true
                         color: "brown"
-                        text: "Sorsolható"
+                        text: qsTr("Prizes", "prizes to draw, part 'Tickets'") + dynamicTranslation.emptyString
                     }
                     SpinBox
                     {
@@ -833,8 +849,7 @@ ApplicationWindow {
                         activeFocusOnPress: false
                         focus: false
                         horizontalAlignment: Text.AlignHCenter
-                        prefix: "díjak: "
-                        suffix: " db"
+                        prefix: qsTr("to draw:", "prizes to draw, part 'to draw'") + dynamicTranslation.emptyString
                         minimumValue: ticketDrawExecutor.minAllowedRemainingPrizesCount
                         maximumValue: 1000
                         stepSize: 1

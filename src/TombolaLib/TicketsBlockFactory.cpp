@@ -2,6 +2,7 @@
 #include <QString>
 #include <QStringList>
 #include "TicketsBlock.h"
+#include <QObject> // tr()
 
 int TicketsBlockFactory::DefaultTicketsPerBlock = 100;
 
@@ -36,9 +37,9 @@ TicketsBlock* TicketsBlockFactory::CreateSingleBlock(int ticketsPerBlock) const
     m_SingleBlocksCreated++;
 
     if (m_SingleBlocksCreated == 1)
-        newBlock->Name = "Névtelen tömb";
+        newBlock->Name = QObject::tr("Unnamed block");
     else
-        newBlock->Name = QString("Névtelen tömb %1").arg(m_SingleBlocksCreated);
+        newBlock->Name = QObject::tr("Unnamed block %1").arg(m_SingleBlocksCreated);
 
     return newBlock;
 }
