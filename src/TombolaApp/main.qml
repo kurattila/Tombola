@@ -88,6 +88,30 @@ ApplicationWindow {
             Behavior on opacity { NumberAnimation { duration: 1000 } }
         }
 
+        Item
+        {
+            anchors.fill: parent
+            MouseArea
+            {
+                id: mailToDeveloper
+                property int mailToDeveloperHeight: 15
+                width: mailToLink.width
+                height: mailToDeveloperHeight
+                anchors.horizontalCenter: parent.horizontalCenter
+                cursorShape: Qt.PointingHandCursor
+
+                Text
+                {
+                    id: mailToLink
+                    //horizontalAlignment: Text.AlignRight
+                    text: '<html><style type="text/css"></style><a href="kur.attila@gmail.com">\u00a9 2016 Kúr Attila</a></html>'
+                    onLinkActivated: Qt.openUrlExternally("mailto:kur.attila@gmail.com?Subject=Tombola")
+                    linkColor: 'brown'
+                    opacity: 0.4
+                }
+            }
+        }
+
         Row
         {
             id: header
@@ -783,7 +807,7 @@ ApplicationWindow {
         MouseArea {
             x: (appWindow.width - width)/2
             y: 20
-            width: 290
+            width: 320 // important: more than 99 tickets to draw require a width of at least 320
             height: 90
             Rectangle {
                 color: "white"
