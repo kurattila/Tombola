@@ -91,40 +91,35 @@ ApplicationWindow {
         Item
         {
             anchors.fill: parent
-            MouseArea
+            ColumnLayout
             {
-                property int mailToDeveloperHeight: 15
-                width: mailToLink.width + languageCombo.width
-                height: mailToDeveloperHeight
+                opacity: 0.4
+                spacing: 5
                 anchors.horizontalCenter: parent.horizontalCenter
-                cursorShape: Qt.PointingHandCursor
-
-                Row
+                MouseArea
                 {
-                    opacity: 0.4
-                    spacing: 10
+                    width: mailToLink.width
+                    height: mailToLink.height
+                    Layout.alignment: Qt.AlignHCenter
+                    cursorShape: Qt.PointingHandCursor
+
                     Text
                     {
                         id: mailToLink
-                        anchors.verticalCenter: parent.verticalCenter
                         text: '<html><style type="text/css"></style><a href="kur.attila@gmail.com">\u00a9 2016 Kúr Attila</a></html>'
                         onLinkActivated: Qt.openUrlExternally("mailto:kur.attila@gmail.com?Subject=Tombola")
                         linkColor: 'brown'
                     }
+                }
 
-                    ComboBox
-                    {
-                        id: languageCombo
-                        width: 90
-                        textRole: "description"
-                        model: ListModel {
-                            ListElement { localeId: "HU"; image: "Images/Flag_HU.png"; description: "Magyar" }
-                            ListElement { localeId: "SK"; image: "Images/Flag_SK.png"; description: "Slovensky" }
-                            ListElement { localeId: "EN"; image: "Images/Flag_UK.png"; description: "English" }
-                        }
-                        onActivated: dynamicTranslation.selectLanguage(model.get(index).localeId);
-                        Component.onCompleted: dynamicTranslation.selectLanguage(model.get(currentIndex).localeId);
-                    }
+                ComboBox
+                {
+                    id: languageCombo
+                    Layout.alignment: Qt.AlignHCenter
+                    textRole: "description"
+                    model: dynamicTranslation.translationLanguages
+                    currentIndex: dynamicTranslation.selectedLanguageIndex
+                    onActivated: dynamicTranslation.selectLanguage(index);
                 }
             }
         }
@@ -849,7 +844,7 @@ ApplicationWindow {
                         activeFocusOnPress: false
                         focus: false
                         horizontalAlignment: Text.AlignHCenter
-                        prefix: qsTr("to draw:", "prizes to draw, part 'to draw'") + dynamicTranslation.emptyString
+                        prefix: qsTr("to draw:", "prizes to draw, part 'to draw'") + " " + dynamicTranslation.emptyString
                         minimumValue: ticketDrawExecutor.minAllowedRemainingPrizesCount
                         maximumValue: 1000
                         stepSize: 1

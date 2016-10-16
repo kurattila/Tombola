@@ -18,6 +18,9 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    QCoreApplication::setApplicationName("Tombola");     // QSettings init early enough
+    QCoreApplication::setOrganizationName("Kúr Attila"); // QSettings init early enough
+
     DynamicTranslation dynamicTranslation(app);
     Logger::Init("Tombola.log.txt");
     qInfo() << "\n\n" << "========== Startup ==========";
