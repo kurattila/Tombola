@@ -30,7 +30,9 @@ SOURCES += tombolalib.cpp \
     InGameTicketsRepository.cpp \
     TombolaDocument.cpp \
     TicketDrawExecutor.cpp \
-    Logger.cpp
+    Logger.cpp \
+    TranslationLanguages_ViewModel.cpp \
+    CrashHandler.cpp
 
 HEADERS += tombolalib.h\
         tombolalib_global.h \
@@ -51,7 +53,9 @@ HEADERS += tombolalib.h\
     TombolaDocument.h \
     TicketDrawExecutor.h \
     Logger.h \
-    IMemento.h
+    IMemento.h \
+    TranslationLanguages_ViewModel.h \
+    CrashHandler.h
 
 unix:!symbian {
     maemo5 {

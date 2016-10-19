@@ -1,5 +1,5 @@
-﻿#ifndef VERSION_H
-#define VERSION_H
+﻿//#ifndef VERSION_H
+//#define VERSION_H
 
 #define VER_FILEVERSION             1,0,0,0
 #define VER_FILEVERSION_STR         "1.0.0.0\0"
@@ -18,4 +18,4 @@
 
 #define VER_COMPANYDOMAIN_STR       "example.org"
 
-#endif // VERSION_H
+//#endif // VERSION_H

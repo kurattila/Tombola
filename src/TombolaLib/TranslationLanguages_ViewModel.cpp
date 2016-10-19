@@ -44,7 +44,7 @@ int TranslationLanguages_ViewModel::indexOfLanguage(const QString& localeId) con
 
 QString TranslationLanguages_ViewModel::languageOfIndex(int languageIndex) const
 {
-    if (languageIndex >= static_cast<int>(m_AllLanguages.size()))
+    if (languageIndex < 0 || languageIndex >= static_cast<int>(m_AllLanguages.size()))
         return "";
     else
         return m_AllLanguages[languageIndex].LocaleId;

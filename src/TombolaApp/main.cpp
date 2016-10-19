@@ -14,16 +14,20 @@
 #include "SingleTicketDraw_ViewModel.h"
 #include "Logger.h"
 #include "DynamicTranslation.h"
+#include "CrashHandler.h"
 
 int main(int argc, char *argv[])
 {
+    Logger::Init("Tombola.log.txt");
+    qInfo() << "\n\n" << "========== Startup ==========";
+
+    CrashHandler crashHandler;
+
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName("Tombola");     // QSettings init early enough
     QCoreApplication::setOrganizationName("Kúr Attila"); // QSettings init early enough
 
     DynamicTranslation dynamicTranslation(app);
-    Logger::Init("Tombola.log.txt");
-    qInfo() << "\n\n" << "========== Startup ==========";
 
     TombolaDocument document;
 
@@ -42,6 +46,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("ticketsSellingPoint", QVariant::fromValue(&ticketsSellingPoint_ViewModel));
     engine.rootContext()->setContextProperty("ticketDrawExecutor", QVariant::fromValue(&ticketDrawExecutor));
     engine.rootContext()->setContextProperty("dynamicTranslation", &dynamicTranslation);
+    engine.rootContext()->setContextProperty("crashHandler", &crashHandler);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     QIcon appIcon(":///Images/TombolaAppIcon.png");

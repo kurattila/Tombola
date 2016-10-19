@@ -42,6 +42,17 @@ ApplicationWindow {
         }
     }
 
+    MessageDialog {
+        id: simulatedCrashMsgBox
+        icon: StandardIcon.Question
+        title: qsTr("Tombola") + dynamicTranslation.emptyString
+        text: qsTr("Force a simulated program crash?") + dynamicTranslation.emptyString
+        standardButtons: StandardButton.Yes | StandardButton.No
+        onYes: {
+            crashHandler.InvokeSimulatedCrash();
+        }
+    }
+
     function proceedToPrizeDrawing()
     {
         if (ticketsSellingPoint.canProceedToPrizeDrawing)
@@ -472,6 +483,15 @@ ApplicationWindow {
 
         onClicked: ticketDrawExecutor.onTriggerByUser();
 //        Keys.onPressed: ticketDrawExecutor.onTriggerByUser();
+
+        Keys.onPressed: {
+            if (event.key == Qt.Key_F12
+                    && (event.modifiers & Qt.ShiftModifier)
+                    && (event.modifiers & Qt.ControlModifier)
+                    && (event.modifiers & Qt.AltModifier)) {
+                simulatedCrashMsgBox.open();
+            }
+        }
 
         Component.onCompleted: {
             ticketsHistoryListWidth = 200;
