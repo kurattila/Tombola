@@ -6,15 +6,20 @@
 
 #include <fstream>
 #include <sstream>
-#include <Windows.h>
-#include <Dbghelp.h>
+
+#ifdef _WIN32
+    #include <Windows.h>
+    #include <Dbghelp.h>
+#endif
 
 class TOMBOLALIBSHARED_EXPORT CrashHandler : public QObject
 {
     Q_OBJECT
 
+#ifdef _WIN32
     static void make_minidump(EXCEPTION_POINTERS* e);
     static LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS * exceptionInfo);
+#endif
 
 public:
     explicit CrashHandler(QObject *parent = 0);

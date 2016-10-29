@@ -2,7 +2,9 @@
 
 CrashHandler::CrashHandler(QObject* /*parent*/)
 {
+#ifdef _WIN32
     ::SetUnhandledExceptionFilter(CrashHandler::OurCrashHandler);
+#endif
 }
 
 void CrashHandler::InvokeSimulatedCrash()
@@ -11,6 +13,7 @@ void CrashHandler::InvokeSimulatedCrash()
     *dummyData = 0;
 }
 
+#ifdef _WIN32
 // http://stackoverflow.com/questions/5028781/how-to-write-a-sample-code-that-will-crash-and-produce-dump-file
 // http://www.codeproject.com/Articles/708670/Part-Windows-Debugging-Techniques-Debugging-Appl
 void CrashHandler::make_minidump(EXCEPTION_POINTERS* e)
@@ -51,7 +54,6 @@ void CrashHandler::make_minidump(EXCEPTION_POINTERS* e)
         nullptr);
 
     CloseHandle(hFile);
-
     return;
 }
 
@@ -70,4 +72,5 @@ LONG WINAPI CrashHandler::OurCrashHandler(EXCEPTION_POINTERS *exceptionInfo)
 
     return /*g_showCrashDialog ? EXCEPTION_CONTINUE_SEARCH :*/ EXCEPTION_EXECUTE_HANDLER;
 }
+#endif
 
