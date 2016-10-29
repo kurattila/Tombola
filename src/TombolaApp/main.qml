@@ -546,11 +546,11 @@ ApplicationWindow {
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: 5
-                    color: backgroundColor
                     TicketInnerVisual {
                         blockName: name
                         ticketName: ticketId
                         fontColor: textColor
+                        paperColor: backgroundColor
                     }
                 }
                 onClicked: ticketDrawExecutor.ticketDrawLeft.removeFromWinningTicketsHistory(index);
@@ -573,11 +573,11 @@ ApplicationWindow {
             height: 150
             x: stageOfPrizeDrawing.ticketsHistoryListWidth + stageOfPrizeDrawing.columnLayoutGap
             y: parent.height
-            color: ticketDrawExecutor.ticketDrawLeft.flyingTicketBgColor
             TicketInnerVisual {
                 blockName: ticketDrawExecutor.ticketDrawLeft.flyingTicketBlockName
                 ticketName: ticketDrawExecutor.ticketDrawLeft.flyingTicketId
                 fontColor: ticketDrawExecutor.ticketDrawLeft.flyingTicketTextColor
+                paperColor: ticketDrawExecutor.ticketDrawLeft.flyingTicketBgColor
             }
 
             transitions: [
@@ -705,11 +705,11 @@ ApplicationWindow {
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: 5
-                    color: backgroundColor
                     TicketInnerVisual {
                         blockName: name
                         ticketName: ticketId
                         fontColor: textColor
+                        paperColor: backgroundColor
                     }
                 }
                 onClicked: ticketDrawExecutor.ticketDrawRight.removeFromWinningTicketsHistory(index);
@@ -732,11 +732,11 @@ ApplicationWindow {
             height: 150
             x: appWindow.width - stageOfPrizeDrawing.ticketsHistoryListWidth - stageOfPrizeDrawing.columnLayoutGap - width
             y: parent.height
-            color: ticketDrawExecutor.ticketDrawRight.flyingTicketBgColor
             TicketInnerVisual {
                 blockName: ticketDrawExecutor.ticketDrawRight.flyingTicketBlockName
                 ticketName: ticketDrawExecutor.ticketDrawRight.flyingTicketId
                 fontColor: ticketDrawExecutor.ticketDrawRight.flyingTicketTextColor
+                paperColor: ticketDrawExecutor.ticketDrawRight.flyingTicketBgColor
             }
 
             transitions: [
