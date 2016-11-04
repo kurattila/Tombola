@@ -27,6 +27,9 @@ private slots:
     void remainingPrizesCount_WillReturnTen_IfPrizesCountChangedToTenBeforeStartUpWasCalled();
     void remainingPrizesCount_WillReturnTotalPrizesCount_WhenPrizeDrawingHasBeenRestarted();
 
+    void remainingPrizesCount_CoercedToZero_WhenContinuingPrizeDrawingButNoMoreSoldTicketsAvailable();
+    void remainingPrizesCount_CoercedToTwo_WhenOnlyTwoSoldTicketsAndBothSpinning();
+
     void setRemainingPrizesCount_WillBeCoercedToMaxValue_WhenMorePrizesThanSoldTickets();
 
     void onTriggerByUser_WillQueryTicketDrawLeftOnly_ByDefault();
@@ -53,10 +56,9 @@ public:
     FakeBase_SingleTicketDraw_ViewModel(QObject* parent = 0)
         : SingleTicketDraw_ViewModel(parent)
     {}
-    void ForceEmitTicketWinningPositionRequested()
+    void ForceEmitTicketWinningPositionRequested(std::shared_ptr<Ticket> ticket = std::shared_ptr<Ticket>())
     {
-        std::shared_ptr<Ticket> dummyTicket;
-        emit ticketWinningPositionRequested(dummyTicket);
+        emit ticketWinningPositionRequested(ticket);
     }
 };
 
@@ -350,6 +352,63 @@ void TicketDrawExecutor_Test::remainingPrizesCount_WillReturnTotalPrizesCount_Wh
 
     int remainingPrizes = ticketDrawExecutor.property("remainingPrizesCount").toInt();
     QCOMPARE(remainingPrizes, totalPrizesCount);
+}
+
+void TicketDrawExecutor_Test::remainingPrizesCount_CoercedToZero_WhenContinuingPrizeDrawingButNoMoreSoldTicketsAvailable()
+{
+    TombolaDocument origiDocument;
+    origiDocument.PrizesCount = 2;
+    auto origiBlock = origiDocument.AllTicketsBlocksSet->AddBlock();
+    origiBlock->SetTicketSold(5, true);
+    origiBlock->SetTicketSold(6, true);
+    auto ticket1 = std::make_shared<Ticket>(5, *origiBlock);
+    auto ticket2 = std::make_shared<Ticket>(6, *origiBlock);
+    auto origiTicketDrawLeft = new FakeBase_SingleTicketDraw_ViewModel();
+    auto origiTicketDrawRight = new FakeBase_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor origiTicketDrawExecutor(origiDocument, origiTicketDrawLeft, origiTicketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    origiTicketDrawExecutor.onPrizeDrawingStartUp();
+    origiTicketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    origiTicketDrawExecutor.onTriggerByUser(); // spin up RIGHT
+    origiTicketDrawLeft->ForceEmitTicketWinningPositionRequested(ticket1);  // LEFT stopped spinning
+    origiTicketDrawLeft->onWinningTicketStateAchieved();
+    origiTicketDrawRight->ForceEmitTicketWinningPositionRequested(ticket2); // RIGHT stopped spinning
+    origiTicketDrawRight->onWinningTicketStateAchieved();
+    std::unique_ptr<IMemento> documentMemento(origiTicketDrawExecutor.SaveToMemento()); // snapshot of when all tickets won already and zero prizes left
+
+    TombolaDocument document;
+    document.PrizesCount = 2;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    auto ticketDrawLeft = new Fake_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new Fake_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    ticketDrawExecutor.RestoreFromMemento(documentMemento.get());
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    ticketDrawExecutor.setProperty("remainingPrizesCount", 10); // try to pump up prizes count from 0 to 10
+
+    QCOMPARE(ticketDrawExecutor.property("remainingPrizesCount").toInt(), 0);
+}
+
+void TicketDrawExecutor_Test::remainingPrizesCount_CoercedToTwo_WhenOnlyTwoSoldTicketsAndBothSpinning()
+{
+    TombolaDocument document;
+    document.PrizesCount = 2;
+    auto block = document.AllTicketsBlocksSet->AddBlock();
+    block->SetTicketSold(5, true);
+    block->SetTicketSold(6, true);
+    auto ticket1 = std::make_shared<Ticket>(5, *block);
+    auto ticket2 = std::make_shared<Ticket>(6, *block);
+    auto ticketDrawLeft = new FakeBase_SingleTicketDraw_ViewModel();
+    auto ticketDrawRight = new FakeBase_SingleTicketDraw_ViewModel();
+    TicketDrawExecutor ticketDrawExecutor(document, ticketDrawLeft, ticketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    ticketDrawExecutor.onPrizeDrawingStartUp();
+    ticketDrawExecutor.onTriggerByUser(); // spin up LEFT
+    ticketDrawExecutor.onTriggerByUser(); // spin up RIGHT
+
+    ticketDrawExecutor.setProperty("remainingPrizesCount", 10); // try to pump up prizes count from 0 to 10
+
+    QCOMPARE(ticketDrawExecutor.property("remainingPrizesCount").toInt(), 2);
 }
 
 void TicketDrawExecutor_Test::setRemainingPrizesCount_WillBeCoercedToMaxValue_WhenMorePrizesThanSoldTickets()

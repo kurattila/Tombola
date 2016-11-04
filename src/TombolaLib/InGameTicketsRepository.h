@@ -31,6 +31,7 @@ public:
 class TOMBOLALIBSHARED_EXPORT InGameTicketsRepository : public IMementoOriginator
 {
     std::list<std::shared_ptr<Ticket>> m_UntouchedTickets;
+    std::list<std::shared_ptr<Ticket>> m_TicketsBeingTransformedIntoWinningOnes;
     std::list<std::shared_ptr<Ticket>> m_WinningTickets;
 
 public:
@@ -41,6 +42,7 @@ public:
     void OnTicketDrawnCommit (const std::shared_ptr<Ticket>& winningTicket);
     const std::list<std::shared_ptr<Ticket>>& GetTicketsStillInGame() const;
     const std::list<std::shared_ptr<Ticket>>& GetWinningTicketsHistory() const;
+    bool IsValid() const;
 
     // IMementoOriginator interface
     virtual IMemento* SaveToMemento() override;

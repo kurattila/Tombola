@@ -32,6 +32,7 @@ private slots:
 
     // Memento-based behavior
     void RestoreFromMemento_RestoresTwoUntouchedTickets_IfSavedWithOnlyTwoRemainingTickets();
+    void RestoreFromMemento_RestoresOneWinningTicket_IfSavedWithOneWinningTickets();
 };
 
 void InGameTicketsRepository_Test::Reset_WillClearWinningTicketsHistory_WhenInitializedRepeatedly()
@@ -216,6 +217,34 @@ void InGameTicketsRepository_Test::RestoreFromMemento_RestoresTwoUntouchedTicket
     QCOMPARE(repository.GetTicketsStillInGame().size(), 2U);
     QCOMPARE(repository.GetTicketsStillInGame().front()->TicketNumber(), 3);
     QCOMPARE(repository.GetTicketsStillInGame().back()->TicketNumber(), 1);
+}
+
+void InGameTicketsRepository_Test::RestoreFromMemento_RestoresOneWinningTicket_IfSavedWithOneWinningTickets()
+{
+    TicketsBlockFactory blockFactory;
+    std::unique_ptr<TicketsBlock> origiBlock(blockFactory.CreateSingleBlock(10));
+    std::unique_ptr<TicketsBlock> origiBlock2(blockFactory.CreateSingleBlock(10));
+    auto origiTicket1 = std::make_shared<Ticket>(1, *origiBlock);
+    auto origiTicket2 = std::make_shared<Ticket>(2, *origiBlock);
+    auto origiTicket3 = std::make_shared<Ticket>(3, *origiBlock);
+    auto origiTicket4 = std::make_shared<Ticket>(1, *origiBlock2);
+    std::list<std::shared_ptr<Ticket>> origiAllTickets = { origiTicket1, origiTicket2, origiTicket3, origiTicket4 };
+    InGameTicketsRepository origiRepository;
+    origiRepository.Reset(origiAllTickets);
+    origiRepository.OnTicketDrawnPrepare(origiTicket2);
+    origiRepository.OnTicketDrawnCommit(origiTicket2);
+    std::unique_ptr<IMemento> memento(origiRepository.SaveToMemento());
+
+    TicketsBlocksSet allBlocks;
+    auto block = allBlocks.AddBlock(3);
+    block->Name = origiBlock->Name;
+    auto block2 = allBlocks.AddBlock(1);
+    block2->Name = origiBlock2->Name;
+    InGameTicketsRepository repository;
+    repository.RestoreFromMemento(memento.get(), &allBlocks);
+
+    QCOMPARE(repository.GetWinningTicketsHistory().size(), 1U);
+    QCOMPARE(repository.GetWinningTicketsHistory().front()->TicketNumber(), 2);
 }
 
 

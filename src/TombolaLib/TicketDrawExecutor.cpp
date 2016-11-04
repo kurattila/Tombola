@@ -133,19 +133,22 @@ int TicketDrawExecutor::minAllowedRemainingPrizesCount() const
 
 int TicketDrawExecutor::maxAllowedRemainingPrizesCount() const
 {
-    int winningCount = m_InGameTicketsRepository.GetWinningTicketsHistory().size();
-    int untouchedCount = m_InGameTicketsRepository.GetTicketsStillInGame().size();
-    if (winningCount == 0 && untouchedCount == 0)
+    if (!m_InGameTicketsRepository.IsValid()) // not initialized yet: unable to tell any maximum
+    {
         return 1000;
+    }
     else
+    {
+        int untouchedCount = m_InGameTicketsRepository.GetTicketsStillInGame().size();
         return untouchedCount + m_CurrentlySpinningCount;
+    }
 }
 
-void TicketDrawExecutor::onTicketWinningPositionRequested(const std::shared_ptr<Ticket>& ticket)
+void TicketDrawExecutor::onTicketWinningPositionRequested(const std::shared_ptr<Ticket>& /*ticket*/)
 {
     setCurrentlySpinningCount(m_CurrentlySpinningCount - 1);
     setRemainingPrizesCount(m_RemainingPrizesCount - 1);
-    m_InGameTicketsRepository.OnTicketDrawnCommit(ticket);
+//    m_InGameTicketsRepository.OnTicketDrawnCommit(ticket);
 }
 
 

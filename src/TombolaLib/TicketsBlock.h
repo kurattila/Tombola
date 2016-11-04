@@ -30,6 +30,7 @@ public:
     void ToggleSoldTicket(int ticketId);
     void SetTicketSold(int ticketId, bool isSold);
     bool IsTicketSold(int ticketId) const;
+    int GetTicketsInBlock() const { return m_TicketsInBlock; }
 
     void BeginRangeOperation(int startingTicketId);
     void RangeOperationInProgress(int ticketId);

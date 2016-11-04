@@ -23,10 +23,12 @@ void InGameTicketsRepository::OnTicketDrawnPrepare(const std::shared_ptr<Ticket>
         throw std::invalid_argument("Tickets list must not be empty");
 
     m_UntouchedTickets.remove(winningTicket);
+    m_TicketsBeingTransformedIntoWinningOnes.push_back(winningTicket);
 }
 
 void InGameTicketsRepository::OnTicketDrawnCommit(const std::shared_ptr<Ticket>& winningTicket)
 {
+    m_TicketsBeingTransformedIntoWinningOnes.remove(winningTicket);
     m_WinningTickets.push_front(winningTicket);
 }
 
@@ -40,6 +42,13 @@ const std::list<std::shared_ptr<Ticket> > &InGameTicketsRepository::GetWinningTi
     return m_WinningTickets;
 }
 
+bool InGameTicketsRepository::IsValid() const
+{
+    return     !m_UntouchedTickets.empty()
+            || !m_TicketsBeingTransformedIntoWinningOnes.empty()
+            || !m_WinningTickets.empty();
+}
+
 IMemento *InGameTicketsRepository::SaveToMemento()
 {
     auto mem = new InGameTicketsRepositoryMemento();
@@ -50,6 +59,16 @@ IMemento *InGameTicketsRepository::SaveToMemento()
             mem->m_MapOfStillInGameTickets[blockId] = std::set<int>();
         mem->m_MapOfStillInGameTickets[blockId].insert(ticket->TicketNumber());
     }
+
+    // Even if m_MapOfStillInGameTickets has received no elements, put at least empty elements in it,
+    // as m_MapOfStillInGameTickets will also serve for reconstructing both collections at once: m_WinningTickets and m_UntouchedTickets
+    for (const auto& ticket: GetWinningTicketsHistory())
+    {
+        TicketsBlocksSet::TicketsBlockIdentification blockId(ticket->BlockName(), ticket->ColorsSetIndex());
+        if (mem->m_MapOfStillInGameTickets.find(blockId) == mem->m_MapOfStillInGameTickets.end())
+            mem->m_MapOfStillInGameTickets[blockId] = std::set<int>();
+    }
+
     return mem;
 }
 
@@ -72,16 +91,22 @@ void InGameTicketsRepository::RestoreFromMemento(const IMemento* memento, void* 
     }
 
     m_UntouchedTickets.clear();
+    m_WinningTickets.clear();
     for (const auto& mapPair: mem->m_MapOfStillInGameTickets)
     {
         const TicketsBlocksSet::TicketsBlockIdentification& id = mapPair.first;
         const std::set<int>& stillInGameTicketsOfBlock = mapPair.second;
 
         auto block = blocksSet->FindBlock(id);
-        for (int ticketNumber: stillInGameTicketsOfBlock)
+        for (int ticketNumber = 1; ticketNumber <= block->GetTicketsInBlock(); ++ticketNumber)
         {
             auto newTicket = std::make_shared<Ticket>(ticketNumber, *block);
-            m_UntouchedTickets.push_back(newTicket);
+
+            auto itStillInGameTicketFound = stillInGameTicketsOfBlock.find(ticketNumber);
+            if (itStillInGameTicketFound == stillInGameTicketsOfBlock.end())
+                m_WinningTickets.push_back(newTicket);
+            else
+                m_UntouchedTickets.push_back(newTicket);
         }
     }
 }
