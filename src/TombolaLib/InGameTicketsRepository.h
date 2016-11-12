@@ -40,7 +40,8 @@ public:
     void Reset(const std::list<std::shared_ptr<Ticket>>& untouchedTickets);
     void OnTicketDrawnPrepare(const std::shared_ptr<Ticket>& winningTicket);
     void OnTicketDrawnCommit (const std::shared_ptr<Ticket>& winningTicket);
-    const std::list<std::shared_ptr<Ticket>>& GetTicketsStillInGame() const;
+    const std::list<std::shared_ptr<Ticket>>& GetUntouchedTickets() const;
+    std::list<std::shared_ptr<Ticket> > GetTicketsStillInGame() const;
     const std::list<std::shared_ptr<Ticket>>& GetWinningTicketsHistory() const;
     bool IsValid() const;
 

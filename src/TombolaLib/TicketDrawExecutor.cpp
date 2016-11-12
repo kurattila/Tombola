@@ -139,7 +139,7 @@ int TicketDrawExecutor::maxAllowedRemainingPrizesCount() const
     }
     else
     {
-        int untouchedCount = m_InGameTicketsRepository.GetTicketsStillInGame().size();
+        int untouchedCount = m_InGameTicketsRepository.GetUntouchedTickets().size();
         return untouchedCount + m_CurrentlySpinningCount;
     }
 }

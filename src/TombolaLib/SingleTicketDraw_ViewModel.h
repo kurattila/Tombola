@@ -79,7 +79,7 @@ protected:
     QHash<int, QByteArray> roleNames() const;
     virtual bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     virtual bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
-    void setCurrentFlyThroughTicket(std::shared_ptr<Ticket> ticket);
+    virtual void setCurrentFlyThroughTicket(std::shared_ptr<Ticket> ticket);
 
     InGameTicketsRepository* m_InGameTicketsRepository = nullptr;
     std::shared_ptr<Ticket> m_CurrentFlyThroughTicket;

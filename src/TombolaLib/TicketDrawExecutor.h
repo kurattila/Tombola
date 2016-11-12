@@ -38,7 +38,6 @@ public:
 
 private:
     TombolaDocument& m_Document;
-    InGameTicketsRepository m_InGameTicketsRepository;
     std::unique_ptr<SingleTicketDraw_ViewModel> m_TicketDrawLeft;
     std::unique_ptr<SingleTicketDraw_ViewModel> m_TicketDrawRight;
     int m_RemainingPrizesCount = 0;
@@ -52,6 +51,8 @@ private:
     void setCurrentlySpinningCount(int ticketsSpinningNow);
 
 protected:
+    InGameTicketsRepository m_InGameTicketsRepository;
+
     int remainingPrizesCount() const;
     int minAllowedRemainingPrizesCount() const;
     int maxAllowedRemainingPrizesCount() const;

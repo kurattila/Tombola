@@ -32,9 +32,17 @@ void InGameTicketsRepository::OnTicketDrawnCommit(const std::shared_ptr<Ticket>&
     m_WinningTickets.push_front(winningTicket);
 }
 
-const std::list<std::shared_ptr<Ticket> > &InGameTicketsRepository::GetTicketsStillInGame() const
+const std::list<std::shared_ptr<Ticket> > &InGameTicketsRepository::GetUntouchedTickets() const
 {
     return m_UntouchedTickets;
+}
+
+std::list<std::shared_ptr<Ticket> > InGameTicketsRepository::GetTicketsStillInGame() const
+{
+    // "still in game" = "untouched" + "being transformed into winning ones"
+    std::list<std::shared_ptr<Ticket>> ticketsStillInGame(m_UntouchedTickets);
+    ticketsStillInGame.insert(ticketsStillInGame.end(), m_TicketsBeingTransformedIntoWinningOnes.begin(), m_TicketsBeingTransformedIntoWinningOnes.end());
+    return ticketsStillInGame;
 }
 
 const std::list<std::shared_ptr<Ticket> > &InGameTicketsRepository::GetWinningTicketsHistory() const

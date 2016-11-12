@@ -85,7 +85,7 @@ void SingleTicketDraw_ViewModel::onStartSingleTicketDraw()
     m_CurrentFlyThroughCounter = 0;
     emit animationDurationChanged();
 
-    auto untouchedTickets = m_InGameTicketsRepository->GetTicketsStillInGame();
+    auto untouchedTickets = m_InGameTicketsRepository->GetUntouchedTickets();
     m_RandomTicketDraw.Init(SingleTicketDraw_ViewModel::DefaultStepsCountOfDraw, untouchedTickets);
     auto winningTicket = m_RandomTicketDraw.GetWinningTicket();
     m_InGameTicketsRepository->OnTicketDrawnPrepare(winningTicket);

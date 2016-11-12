@@ -60,6 +60,25 @@ public:
     {
         emit ticketWinningPositionRequested(ticket);
     }
+    virtual void setCurrentFlyThroughTicket(std::shared_ptr<Ticket> ticket) override
+    {
+        SingleTicketDraw_ViewModel::setCurrentFlyThroughTicket(ticket);
+    }
+};
+
+class Fake_TicketDrawExecutor : public TicketDrawExecutor
+{
+public:
+    Fake_TicketDrawExecutor(  TombolaDocument& document
+                                     , SingleTicketDraw_ViewModel* ticketDrawLeft
+                                     , SingleTicketDraw_ViewModel* ticketDrawRight
+                                     , QObject *parent = 0)
+        : TicketDrawExecutor(document, ticketDrawLeft, ticketDrawRight, parent)
+    {}
+    const InGameTicketsRepository& GetInGameTicketsRepository() const
+    {
+        return m_InGameTicketsRepository;
+    }
 };
 
 class Fake_SingleTicketDraw_ViewModel : public FakeBase_SingleTicketDraw_ViewModel
@@ -114,8 +133,8 @@ void TicketDrawExecutor_Test::onPrizeDrawingStartUp_WillPassNonEmptyRepositoryTo
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     QCOMPARE(ticketDrawLeft->PrivateInGameRepository(), ticketDrawRight->PrivateInGameRepository());
-    QCOMPARE(ticketDrawLeft->PrivateInGameRepository()->GetTicketsStillInGame().size(), 1U);
-    QCOMPARE(ticketDrawRight->PrivateInGameRepository()->GetTicketsStillInGame().size(), 1U);
+    QCOMPARE(ticketDrawLeft->PrivateInGameRepository()->GetUntouchedTickets().size(), 1U);
+    QCOMPARE(ticketDrawRight->PrivateInGameRepository()->GetUntouchedTickets().size(), 1U);
 }
 
 void TicketDrawExecutor_Test::onPrizeDrawingStartUp_WillClearSpinningStatuses_WhenCalledRepeatedly()
@@ -248,7 +267,7 @@ void TicketDrawExecutor_Test::onPrizeDrawingStartup_WontResetInGameTicketsReposi
     ticketDrawExecutor.RestoreFromMemento(mem.get());
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
-    QCOMPARE(ticketDrawLeft->PrivateInGameRepository()->GetTicketsStillInGame().size(), 2U);
+    QCOMPARE(ticketDrawLeft->PrivateInGameRepository()->GetUntouchedTickets().size(), 2U);
 }
 
 void TicketDrawExecutor_Test::remainingPrizesCount_ReturnsTotalPrizesCount_WhenNoTicketDrawExecutedYet()
@@ -361,16 +380,18 @@ void TicketDrawExecutor_Test::remainingPrizesCount_CoercedToZero_WhenContinuingP
     auto origiBlock = origiDocument.AllTicketsBlocksSet->AddBlock();
     origiBlock->SetTicketSold(5, true);
     origiBlock->SetTicketSold(6, true);
-    auto ticket1 = std::make_shared<Ticket>(5, *origiBlock);
-    auto ticket2 = std::make_shared<Ticket>(6, *origiBlock);
     auto origiTicketDrawLeft = new FakeBase_SingleTicketDraw_ViewModel();
     auto origiTicketDrawRight = new FakeBase_SingleTicketDraw_ViewModel();
-    TicketDrawExecutor origiTicketDrawExecutor(origiDocument, origiTicketDrawLeft, origiTicketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
+    Fake_TicketDrawExecutor origiTicketDrawExecutor(origiDocument, origiTicketDrawLeft, origiTicketDrawRight); // will auto-delete ticketDrawLeft and ticketDrawRight
     origiTicketDrawExecutor.onPrizeDrawingStartUp();
+    auto ticket1 = origiTicketDrawExecutor.GetInGameTicketsRepository().GetUntouchedTickets().front();
+    auto ticket2 = origiTicketDrawExecutor.GetInGameTicketsRepository().GetUntouchedTickets().back();
     origiTicketDrawExecutor.onTriggerByUser(); // spin up LEFT
     origiTicketDrawExecutor.onTriggerByUser(); // spin up RIGHT
+    origiTicketDrawLeft->setCurrentFlyThroughTicket(ticket1);
     origiTicketDrawLeft->ForceEmitTicketWinningPositionRequested(ticket1);  // LEFT stopped spinning
     origiTicketDrawLeft->onWinningTicketStateAchieved();
+    origiTicketDrawRight->setCurrentFlyThroughTicket(ticket2);
     origiTicketDrawRight->ForceEmitTicketWinningPositionRequested(ticket2); // RIGHT stopped spinning
     origiTicketDrawRight->onWinningTicketStateAchieved();
     std::unique_ptr<IMemento> documentMemento(origiTicketDrawExecutor.SaveToMemento()); // snapshot of when all tickets won already and zero prizes left

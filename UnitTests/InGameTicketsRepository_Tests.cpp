@@ -19,14 +19,14 @@ public:
 private slots:
     void Reset_WillClearWinningTicketsHistory_WhenInitializedRepeatedly();
 
-    void GetTicketsStillInGame_ReturnsAllTickets_WhenNoTicketsDrawnYet();
+    void GetUntouchedTickets_ReturnsAllTickets_WhenNoTicketsDrawnYet();
 
     void GetWinningTicketsHistory_ReturnsEmptyList_WhenNoTicketsDrawnYet();
     void GetWinningTicketsHistory_Returns2Tickets_When2TicketsDrawnAlready();
 
     void OnTicketDrawnBegin_WillThrow_WhenTicketsListEmpty();
-    void OnTicketDrawnBegin_WillRemoveWinningTicketFromInGameTickets_Always();
-    void OnTicketDrawnBegin_WillEmptyInGameTickets_WhenCalledForEverySingleTicket();
+    void OnTicketDrawnBegin_WillRemoveWinningTicketFromUntouchedTickets_Always();
+    void OnTicketDrawnBegin_WillEmptyUntouchedTickets_WhenCalledForEverySingleTicket();
     void TicketDrawn_WontBePartOfWinningTickets_WhenOnTicketDrawnEndNotCalledYet();
     void TicketDrawn_WillBecomePartOfWinningTickets_WhenOnTicketDrawnEndCalled();
 
@@ -52,7 +52,7 @@ void InGameTicketsRepository_Test::Reset_WillClearWinningTicketsHistory_WhenInit
     QCOMPARE(winningTickets.size(), 0U);
 }
 
-void InGameTicketsRepository_Test::GetTicketsStillInGame_ReturnsAllTickets_WhenNoTicketsDrawnYet()
+void InGameTicketsRepository_Test::GetUntouchedTickets_ReturnsAllTickets_WhenNoTicketsDrawnYet()
 {
     TicketsBlock block(10);
     auto ticket1 = std::make_shared<Ticket>(1, block);
@@ -62,12 +62,12 @@ void InGameTicketsRepository_Test::GetTicketsStillInGame_ReturnsAllTickets_WhenN
     InGameTicketsRepository repository;
     repository.Reset(allTickets);
 
-    auto stillInGameTickets = repository.GetTicketsStillInGame();
+    auto untouchedTickets = repository.GetUntouchedTickets();
 
-    QCOMPARE(stillInGameTickets.size(), 3U);
-    QCOMPARE(stillInGameTickets.front(), ticket1);
-    QCOMPARE(*std::next(stillInGameTickets.begin()), ticket2);
-    QCOMPARE(stillInGameTickets.back(), ticket3);
+    QCOMPARE(untouchedTickets.size(), 3U);
+    QCOMPARE(untouchedTickets.front(), ticket1);
+    QCOMPARE(*std::next(untouchedTickets.begin()), ticket2);
+    QCOMPARE(untouchedTickets.back(), ticket3);
 }
 
 void InGameTicketsRepository_Test::GetWinningTicketsHistory_ReturnsEmptyList_WhenNoTicketsDrawnYet()
@@ -114,7 +114,7 @@ void InGameTicketsRepository_Test::OnTicketDrawnBegin_WillThrow_WhenTicketsListE
     QVERIFY_EXCEPTION_THROWN(repository.OnTicketDrawnPrepare(std::shared_ptr<Ticket>()), std::invalid_argument);
 }
 
-void InGameTicketsRepository_Test::OnTicketDrawnBegin_WillRemoveWinningTicketFromInGameTickets_Always()
+void InGameTicketsRepository_Test::OnTicketDrawnBegin_WillRemoveWinningTicketFromUntouchedTickets_Always()
 {
     TicketsBlock block(10);
     auto ticket1 = std::make_shared<Ticket>(1, block);
@@ -126,13 +126,13 @@ void InGameTicketsRepository_Test::OnTicketDrawnBegin_WillRemoveWinningTicketFro
 
     repository.OnTicketDrawnPrepare(ticket2);
 
-    auto stillInGameTickets = repository.GetTicketsStillInGame();
-    QCOMPARE(stillInGameTickets.size(), 2U);
-    QCOMPARE(stillInGameTickets.front(), ticket1);
-    QCOMPARE(stillInGameTickets.back(), ticket3);
+    auto untouchedTickets = repository.GetUntouchedTickets();
+    QCOMPARE(untouchedTickets.size(), 2U);
+    QCOMPARE(untouchedTickets.front(), ticket1);
+    QCOMPARE(untouchedTickets.back(), ticket3);
 }
 
-void InGameTicketsRepository_Test::OnTicketDrawnBegin_WillEmptyInGameTickets_WhenCalledForEverySingleTicket()
+void InGameTicketsRepository_Test::OnTicketDrawnBegin_WillEmptyUntouchedTickets_WhenCalledForEverySingleTicket()
 {
     TicketsBlock block(10);
     auto ticket1 = std::make_shared<Ticket>(1, block);
@@ -146,8 +146,8 @@ void InGameTicketsRepository_Test::OnTicketDrawnBegin_WillEmptyInGameTickets_Whe
     repository.OnTicketDrawnPrepare(ticket3);
     repository.OnTicketDrawnPrepare(ticket1);
 
-    auto stillInGameTickets = repository.GetTicketsStillInGame();
-    QCOMPARE(stillInGameTickets.size(), 0U);
+    auto untouchedTickets = repository.GetUntouchedTickets();
+    QCOMPARE(untouchedTickets.size(), 0U);
 }
 
 void InGameTicketsRepository_Test::TicketDrawn_WontBePartOfWinningTickets_WhenOnTicketDrawnEndNotCalledYet()
@@ -214,9 +214,9 @@ void InGameTicketsRepository_Test::RestoreFromMemento_RestoresTwoUntouchedTicket
     InGameTicketsRepository repository;
     repository.RestoreFromMemento(memento.get(), &allBlocks);
 
-    QCOMPARE(repository.GetTicketsStillInGame().size(), 2U);
-    QCOMPARE(repository.GetTicketsStillInGame().front()->TicketNumber(), 3);
-    QCOMPARE(repository.GetTicketsStillInGame().back()->TicketNumber(), 1);
+    QCOMPARE(repository.GetUntouchedTickets().size(), 2U);
+    QCOMPARE(repository.GetUntouchedTickets().front()->TicketNumber(), 3);
+    QCOMPARE(repository.GetUntouchedTickets().back()->TicketNumber(), 1);
 }
 
 void InGameTicketsRepository_Test::RestoreFromMemento_RestoresOneWinningTicket_IfSavedWithOneWinningTickets()
