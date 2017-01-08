@@ -472,6 +472,8 @@ ApplicationWindow {
 
         property int ticketsHistoryListWidth;
         property int columnLayoutGap;
+        property int flyingTicketWidth;
+        property int flyingTicketHeight;
 
         Button {
             visible: false
@@ -496,6 +498,8 @@ ApplicationWindow {
         Component.onCompleted: {
             ticketsHistoryListWidth = 200;
             columnLayoutGap = 50;
+            flyingTicketWidth = 350;
+            flyingTicketHeight = 150;
         }
 
         states: [
@@ -543,7 +547,7 @@ ApplicationWindow {
             delegate: MouseArea {
                 width: parent.width
                 height: 100
-                Rectangle {
+                Item {
                     anchors.fill: parent
                     anchors.margins: 5
                     TicketInnerVisual {
@@ -551,6 +555,7 @@ ApplicationWindow {
                         ticketName: ticketId
                         fontColor: textColor
                         paperColor: backgroundColor
+                        shaderBlendMode: shaderBlend
                     }
                 }
                 onClicked: ticketDrawExecutor.ticketDrawLeft.removeFromWinningTicketsHistory(index);
@@ -567,10 +572,10 @@ ApplicationWindow {
             }
         }
 
-        Rectangle {
+        Item {
             id: ticketRectLeft
-            width: 300
-            height: 150
+            width: stageOfPrizeDrawing.flyingTicketWidth
+            height: stageOfPrizeDrawing.flyingTicketHeight
             x: stageOfPrizeDrawing.ticketsHistoryListWidth + stageOfPrizeDrawing.columnLayoutGap
             y: parent.height
             TicketInnerVisual {
@@ -578,6 +583,7 @@ ApplicationWindow {
                 ticketName: ticketDrawExecutor.ticketDrawLeft.flyingTicketId
                 fontColor: ticketDrawExecutor.ticketDrawLeft.flyingTicketTextColor
                 paperColor: ticketDrawExecutor.ticketDrawLeft.flyingTicketBgColor
+                shaderBlendMode: ticketDrawExecutor.ticketDrawLeft.flyingTicketShaderBlendMode
             }
 
             transitions: [
@@ -593,11 +599,11 @@ ApplicationWindow {
                     SequentialAnimation {
                         NumberAnimation {
                             properties: "y"
-                            duration: 3.5 * ticketDrawExecutor.ticketDrawLeft.animationDuration
+                            duration: ticketDrawExecutor.ticketDrawLeft.animationDuration
                             easing {
                                 type: Easing.OutElastic
                                 amplitude: 1.0
-                                period: 0.5
+                                period: 0.8
                             }
                         }
                         ScriptAction { script: ticketDrawExecutor.ticketDrawLeft.onWinningTicketStateAchieved(); }
@@ -702,7 +708,7 @@ ApplicationWindow {
             delegate: MouseArea {
                 width: parent.width
                 height: 100
-                Rectangle {
+                Item {
                     anchors.fill: parent
                     anchors.margins: 5
                     TicketInnerVisual {
@@ -710,6 +716,7 @@ ApplicationWindow {
                         ticketName: ticketId
                         fontColor: textColor
                         paperColor: backgroundColor
+                        shaderBlendMode: shaderBlend
                     }
                 }
                 onClicked: ticketDrawExecutor.ticketDrawRight.removeFromWinningTicketsHistory(index);
@@ -726,10 +733,10 @@ ApplicationWindow {
             }
         }
 
-        Rectangle {
+        Item {
             id: ticketRectRight
-            width: 300
-            height: 150
+            width: stageOfPrizeDrawing.flyingTicketWidth
+            height: stageOfPrizeDrawing.flyingTicketHeight
             x: appWindow.width - stageOfPrizeDrawing.ticketsHistoryListWidth - stageOfPrizeDrawing.columnLayoutGap - width
             y: parent.height
             TicketInnerVisual {
@@ -737,6 +744,7 @@ ApplicationWindow {
                 ticketName: ticketDrawExecutor.ticketDrawRight.flyingTicketId
                 fontColor: ticketDrawExecutor.ticketDrawRight.flyingTicketTextColor
                 paperColor: ticketDrawExecutor.ticketDrawRight.flyingTicketBgColor
+                shaderBlendMode: ticketDrawExecutor.ticketDrawRight.flyingTicketShaderBlendMode
             }
 
             transitions: [
@@ -752,11 +760,11 @@ ApplicationWindow {
                     SequentialAnimation {
                         NumberAnimation {
                             properties: "y"
-                            duration: 3.5 * ticketDrawExecutor.ticketDrawRight.animationDuration
+                            duration: ticketDrawExecutor.ticketDrawRight.animationDuration
                             easing {
                                 type: Easing.OutElastic
                                 amplitude: 1.0
-                                period: 0.5
+                                period: 0.8
                             }
                         }
                         ScriptAction { script: ticketDrawExecutor.ticketDrawRight.onWinningTicketStateAchieved(); }

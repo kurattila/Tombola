@@ -47,7 +47,8 @@ public:
         BackgroundColorRole = Qt::UserRole + 1,
         TextColorRole,
         NameRole,
-        TicketIdRole
+        TicketIdRole,
+        ShaderBlendRole
     };
 
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -67,12 +68,14 @@ public:
     Q_PROPERTY(QColor flyingTicketTextColor READ flyingTicketTextColor NOTIFY flyingTicketTextColorChanged)
     Q_PROPERTY(QString flyingTicketBlockName READ flyingTicketBlockName NOTIFY flyingTicketBlockNameChanged)
     Q_PROPERTY(int flyingTicketId READ flyingTicketId NOTIFY flyingTicketIdChanged)
+    Q_PROPERTY(QString flyingTicketShaderBlendMode READ flyingTicketShaderBlendMode NOTIFY flyingTicketShaderBlendModeChanged)
     Q_PROPERTY(int animationDuration READ animationDuration NOTIFY animationDurationChanged)
 
     const QColor& flyingTicketBgColor() const;
     const QColor& flyingTicketTextColor() const;
     const QString& flyingTicketBlockName() const;
     int flyingTicketId() const;
+    const QString& flyingTicketShaderBlendMode() const;
     int animationDuration() const;
 
 protected:
@@ -94,6 +97,7 @@ signals:
     void flyingTicketTextColorChanged();
     void flyingTicketBlockNameChanged();
     void flyingTicketIdChanged();
+    void flyingTicketShaderBlendModeChanged();
     void animationDurationChanged();
 
 public slots:

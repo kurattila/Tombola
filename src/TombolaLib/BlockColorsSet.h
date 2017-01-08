@@ -13,6 +13,7 @@ class TOMBOLALIBSHARED_EXPORT BlockColorsSet
     static std::vector<QColor> TextColors;
     static std::vector<QColor> UnsoldTicketColors;
     static std::vector<QString> ColorNames;
+    static std::vector<QString> ShaderBlendModes;
 
     static void ensureInitDone();
 
@@ -22,6 +23,7 @@ public:
     static const QColor& GetTextColor(int colorSetIndex);
     static const QColor& GetUnsoldTicketColor(int colorSetIndex);
     static const QString& GetColorName(int colorSetIndex);
+    static const QString& GetShaderBlendMode(int colorSetIndex);
 };
 
 #endif // BLOCKCOLORSSET_H

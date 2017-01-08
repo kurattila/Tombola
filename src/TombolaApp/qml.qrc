@@ -6,5 +6,8 @@
         <file>Images/DeleteTrashBin.png</file>
         <file>Images/CheckMark.png</file>
         <file>TicketInnerVisual.qml</file>
+        <file>Images/PaperTexture_Equalized.jpg</file>
+        <file>Images/TicketMask.png</file>
+        <file>Images/TicketBorderMask.png</file>
     </qresource>
 </RCC>

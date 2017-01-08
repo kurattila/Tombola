@@ -44,6 +44,9 @@ QVariant SingleTicketDraw_ViewModel::data(const QModelIndex& index, int role) co
     case TicketIdRole:
         return refTicket->TicketNumber();
         break;
+    case ShaderBlendRole:
+        return BlockColorsSet::GetShaderBlendMode(colorIndex);
+        break;
     }
 
     return false;
@@ -158,6 +161,14 @@ int SingleTicketDraw_ViewModel::flyingTicketId() const
         return m_CurrentFlyThroughTicket->TicketNumber();
 }
 
+const QString &SingleTicketDraw_ViewModel::flyingTicketShaderBlendMode() const
+{
+    if (!m_CurrentFlyThroughTicket) // dummy fallback
+        return BlockColorsSet::GetShaderBlendMode(0);
+    else
+        return BlockColorsSet::GetShaderBlendMode( m_CurrentFlyThroughTicket->ColorsSetIndex() );
+}
+
 int SingleTicketDraw_ViewModel::animationDuration() const
 {
     int decceleration = m_CurrentFlyThroughCounter - SingleTicketDraw_ViewModel::DefaultStepsCountOfDraw / 3;
@@ -175,6 +186,7 @@ QHash<int, QByteArray> SingleTicketDraw_ViewModel::roleNames() const
     roles[TextColorRole] = "textColor";
     roles[NameRole] = "name";
     roles[TicketIdRole] = "ticketId";
+    roles[ShaderBlendRole] = "shaderBlend";
     return roles;
 }
 
@@ -214,5 +226,6 @@ void SingleTicketDraw_ViewModel::setCurrentFlyThroughTicket(std::shared_ptr<Tick
     emit flyingTicketTextColorChanged();
     emit flyingTicketBlockNameChanged();
     emit flyingTicketIdChanged();
+    emit flyingTicketShaderBlendModeChanged();
 }
 
