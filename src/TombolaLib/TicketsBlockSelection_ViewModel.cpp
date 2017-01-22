@@ -34,13 +34,13 @@ QVariant TicketsBlockSelection_ViewModel::data(const QModelIndex &index, int rol
         return false;
 }
 
-void TicketsBlockSelection_ViewModel::doTicketsBlockSelection(int blockIndex)
+void TicketsBlockSelection_ViewModel::doTicketsBlockSelection(int blockIndexNonSorted)
 {
-    m_SelectedBlock = m_TicketsBlocksSet->GetBlock(blockIndex);
+    m_SelectedBlock = m_TicketsBlocksSet->GetBlock(blockIndexNonSorted);
     emit dataChanged(createIndex(0, 0), createIndex(rowCount()-1, 0));
 //    emit dataChanged(createIndex(0, 0), createIndex(rowCount()-1, 0), QVector<int>{IsSelectedRole});
 //    emit dataChanged(createIndex(selectedIndex, 0), createIndex(selectedIndex, 0));
-    emit rowSelected(blockIndex);
+    emit rowSelected(blockIndexNonSorted);
 }
 
 void TicketsBlockSelection_ViewModel::doAddRow()
@@ -52,9 +52,9 @@ void TicketsBlockSelection_ViewModel::doAddRow()
 }
 
 
-void TicketsBlockSelection_ViewModel::doDeleteRow(int ticketsBlockIndex)
+void TicketsBlockSelection_ViewModel::doDeleteRow(int ticketsBlockIndexNonSorted)
 {
-    removeRow(ticketsBlockIndex);
+    removeRow(ticketsBlockIndexNonSorted);
 
     int newSelectedBlockIndex = m_TicketsBlocksSet->FindBlockIndex(m_SelectedBlock);
     doTicketsBlockSelection(newSelectedBlockIndex);
@@ -124,4 +124,51 @@ void TicketsBlockSelection_ViewModel::onTicketsBlockDetailUpdated()
 {
     int selectedIndex = m_TicketsBlocksSet->FindBlockIndex(m_SelectedBlock);
     emit dataChanged(createIndex(selectedIndex, 0), createIndex(selectedIndex, 0));
+}
+
+
+
+///
+/// \brief TicketsBlockSelection_SortFilterProxyModel::TicketsBlockSelection_SortFilterProxyModel
+/// \param ticketsBlocksSet
+/// \param parentVM
+/// \param parent
+///
+TicketsBlockSelection_SortFilterProxyModel::TicketsBlockSelection_SortFilterProxyModel(std::shared_ptr<TicketsBlocksSet> ticketsBlocksSet, TicketsSellingPoint_ViewModel *parentVM, QObject *parent)
+{
+    m_SourceModel.reset(new TicketsBlockSelection_ViewModel(ticketsBlocksSet, parentVM, parent));
+    setSourceModel(m_SourceModel.get());
+    setSortRole(TicketsBlockSelection_ViewModel::NameRole);
+    //setDynamicSortFilter(true);
+    setSortCaseSensitivity(Qt::CaseInsensitive);
+    sort(0, Qt::AscendingOrder);
+}
+
+int TicketsBlockSelection_SortFilterProxyModel::MapBlockIndexToSource(int blockIndexSorted) const
+{
+    auto indexObjNonSorted = mapToSource(index(blockIndexSorted, 0));
+    return indexObjNonSorted.row(); // return index in source model, not proxy model
+}
+
+int TicketsBlockSelection_SortFilterProxyModel::MapBlockIndexFromSource(int blockIndexNonSorted) const
+{
+    auto indexObjSorted = mapFromSource(m_SourceModel->index(blockIndexNonSorted, 0));
+    return indexObjSorted.row(); // return index in proxy model, not source model
+}
+
+void TicketsBlockSelection_SortFilterProxyModel::doTicketsBlockSelection(int blockIndexSorted)
+{
+    int blockIndexNonSorted = MapBlockIndexToSource(blockIndexSorted);
+    m_SourceModel->doTicketsBlockSelection(blockIndexNonSorted);
+}
+
+void TicketsBlockSelection_SortFilterProxyModel::doAddRow()
+{
+    m_SourceModel->doAddRow();
+}
+
+void TicketsBlockSelection_SortFilterProxyModel::doDeleteRow(int blockIndexSorted)
+{
+    int blockIndexNonSorted = MapBlockIndexToSource(blockIndexSorted);
+    m_SourceModel->doDeleteRow(blockIndexNonSorted);
 }

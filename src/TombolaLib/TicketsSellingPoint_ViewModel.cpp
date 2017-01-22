@@ -8,7 +8,7 @@ TicketsSellingPoint_ViewModel::TicketsSellingPoint_ViewModel(TombolaDocument& do
     , m_TombolaDocument(document)
 {
     m_BlockColorsSet_ViewModel.reset(new BlockColorsSet_ViewModel(parent));
-    m_TicketsBlockSelection_ViewModel.reset(new TicketsBlockSelection_ViewModel(m_TombolaDocument.AllTicketsBlocksSet, this, parent));
+    m_TicketsBlockSelection_Sorted_ProxyModel.reset(new TicketsBlockSelection_SortFilterProxyModel(m_TombolaDocument.AllTicketsBlocksSet, this, parent));
 }
 
 void TicketsSellingPoint_ViewModel::Init(bool isPrizeDrawingRunning)
@@ -16,11 +16,11 @@ void TicketsSellingPoint_ViewModel::Init(bool isPrizeDrawingRunning)
     m_StartUpStraightIntoPrizeDrawing = isPrizeDrawingRunning;
     m_CurrentTicketsBlock = m_TombolaDocument.AllTicketsBlocksSet->GetFirstBlock();
 
-    m_TicketsBlockSelection_ViewModel->doTicketsBlockSelection(getBlockIndex());
+    m_TicketsBlockSelection_Sorted_ProxyModel->doTicketsBlockSelection(getBlockIndexSorted());
 
-    connect(m_TicketsBlockSelection_ViewModel.get(), SIGNAL(rowSelected(int)), this, SLOT(onTicketsBlockSelected(int)));
-    connect(m_TicketsBlockSelection_ViewModel.get(), SIGNAL(rowsInserted(const QModelIndex&,int,int)), this, SLOT(onTicketsBlocksInserted(const QModelIndex&,int,int)));
-    connect(m_TicketsBlockSelection_ViewModel.get(), SIGNAL(rowsRemoved(const QModelIndex&,int,int)), this, SLOT(onTicketsBlocksRemoved(const QModelIndex&,int,int)));
+    connect(m_TicketsBlockSelection_Sorted_ProxyModel->sourceModel(), SIGNAL(rowSelected(int)), this, SLOT(onNonSortedTicketsBlockSelected(int)));
+    connect(m_TicketsBlockSelection_Sorted_ProxyModel->sourceModel(), SIGNAL(rowsInserted(const QModelIndex&,int,int)), this, SLOT(onNonSortedTicketsBlocksInserted(const QModelIndex&,int,int)));
+    connect(m_TicketsBlockSelection_Sorted_ProxyModel->sourceModel(), SIGNAL(rowsRemoved(const QModelIndex&,int,int)), this, SLOT(onNonSortedTicketsBlocksRemoved(const QModelIndex&,int,int)));
 }
 
 void TicketsSellingPoint_ViewModel::componentOnCompleted()
@@ -120,9 +120,11 @@ QString TicketsSellingPoint_ViewModel::getBlockName() const
     return m_CurrentTicketsBlock->Name;
 }
 
-int TicketsSellingPoint_ViewModel::getBlockIndex() const
+int TicketsSellingPoint_ViewModel::getBlockIndexSorted() const
 {
-    return m_TombolaDocument.AllTicketsBlocksSet->FindBlockIndex(m_CurrentTicketsBlock);
+    int blockRawIndex = m_TombolaDocument.AllTicketsBlocksSet->FindBlockIndex(m_CurrentTicketsBlock);
+    int blockIndexSorted = m_TicketsBlockSelection_Sorted_ProxyModel->MapBlockIndexFromSource(blockRawIndex);
+    return blockIndexSorted;
 }
 
 QColor TicketsSellingPoint_ViewModel::getBlockColor() const
@@ -146,6 +148,7 @@ void TicketsSellingPoint_ViewModel::setBlockName(const QString& blockName)
     {
         m_CurrentTicketsBlock->Name = blockName;
         emit blockNameChanged(); // emit needed for connect(...)-based slots to be triggered (as used e.g. in TicketsBlockSelection_ViewModel)
+        emit blockIndexSortedChanged( getBlockIndexSorted() ); // needed by auto-scrolling the ListView to the block which is currently being renamed
     }
 }
 
@@ -192,21 +195,21 @@ BlockColorsSet_ViewModel* TicketsSellingPoint_ViewModel::getBlockColorsList() co
     return m_BlockColorsSet_ViewModel.get();
 }
 
-TicketsBlockSelection_ViewModel* TicketsSellingPoint_ViewModel::getBlockSelectionList() const
+TicketsBlockSelection_SortFilterProxyModel* TicketsSellingPoint_ViewModel::getBlockSelectionList() const
 {
-    return m_TicketsBlockSelection_ViewModel.get();
+    return m_TicketsBlockSelection_Sorted_ProxyModel.get();
 }
 
-void TicketsSellingPoint_ViewModel::onTicketsBlockSelected(int ticketsBlockIndex)
+void TicketsSellingPoint_ViewModel::onNonSortedTicketsBlockSelected(int ticketsBlockIndexNonSorted)
 {
-    m_CurrentTicketsBlock = m_TombolaDocument.AllTicketsBlocksSet->GetBlock(ticketsBlockIndex);
+    m_CurrentTicketsBlock = m_TombolaDocument.AllTicketsBlocksSet->GetBlock(ticketsBlockIndexNonSorted);
 
     notifyAboutTicketsBlockChanged();
 }
 
-void TicketsSellingPoint_ViewModel::onTicketsBlocksInserted(const QModelIndex& /*parent*/, int /*first*/, int last)
+void TicketsSellingPoint_ViewModel::onNonSortedTicketsBlocksInserted(const QModelIndex& /*parent*/, int /*firstNonSorted*/, int lastNonSorted)
 {
-    m_CurrentTicketsBlock = m_TombolaDocument.AllTicketsBlocksSet->GetBlock(last);
+    m_CurrentTicketsBlock = m_TombolaDocument.AllTicketsBlocksSet->GetBlock(lastNonSorted);
 
     notifyAboutTicketsBlockChanged();
     emit totalTicketsChanged();
@@ -214,7 +217,7 @@ void TicketsSellingPoint_ViewModel::onTicketsBlocksInserted(const QModelIndex& /
     emit canProceedToPrizeDrawingChanged();
 }
 
-void TicketsSellingPoint_ViewModel::onTicketsBlocksRemoved(const QModelIndex& /*parent*/, int /*first*/, int /*last*/)
+void TicketsSellingPoint_ViewModel::onNonSortedTicketsBlocksRemoved(const QModelIndex& /*parent*/, int /*firstNonSorted*/, int /*lastNonSorted*/)
 {
     emit totalTicketsChanged();
     emit totalSoldTicketsChanged();
@@ -223,7 +226,7 @@ void TicketsSellingPoint_ViewModel::onTicketsBlocksRemoved(const QModelIndex& /*
 
 void TicketsSellingPoint_ViewModel::notifyAboutTicketsBlockChanged()
 {
-    emit blockIndexChanged( getBlockIndex() );
+    emit blockIndexSortedChanged( getBlockIndexSorted() );
     emit blockNameChanged();
     emit blockColorChanged();
     emit textColorChanged();

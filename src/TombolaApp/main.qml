@@ -117,8 +117,8 @@ ApplicationWindow {
                     Text
                     {
                         id: mailToLink
-                        text: '<html><style type="text/css"></style><a href="kur.attila@gmail.com">\u00a9 2016 Kúr Attila</a></html>'
-                        onLinkActivated: Qt.openUrlExternally("mailto:kur.attila@gmail.com?Subject=Tombola")
+                        text: '<html><style type="text/css"></style><a href="kur.attila@gmail.com">\u00a9 2017 Kúr Attila</a></html>'
+                        onLinkActivated: Qt.openUrlExternally("mailto:kur.attila@gmail.com?Subject=Tombola 2.0")
                         linkColor: 'brown'
                     }
                 }
@@ -255,7 +255,7 @@ ApplicationWindow {
                     height: appWindow.height - header.headerHeight - addTicketsBlockButton.height - 5
                     clip: true
                     model: ticketsSellingPoint.blockSelectionList
-                    currentIndex: ticketsSellingPoint.blockIndex
+                    currentIndex: ticketsSellingPoint.blockIndexSorted
 
                     add: Transition {
                         ParallelAnimation {
@@ -368,7 +368,7 @@ ApplicationWindow {
                         Text
                         {
                             width: 0
-                            text: qsTr("Title of block no. %1:").arg(ticketsSellingPoint.blockIndex + 1) + dynamicTranslation.emptyString
+                            text: qsTr("Title of block no. %1:").arg(ticketsSellingPoint.blockIndexSorted + 1) + dynamicTranslation.emptyString
                             color: ticketsSellingPoint.textColor
                         }
 

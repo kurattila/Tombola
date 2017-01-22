@@ -30,7 +30,7 @@ public:
     Q_INVOKABLE void componentOnCompleted();
 
     Q_PROPERTY(QString blockName READ getBlockName WRITE setBlockName NOTIFY blockNameChanged)
-    Q_PROPERTY(int blockIndex READ getBlockIndex NOTIFY blockIndexChanged)
+    Q_PROPERTY(int blockIndexSorted READ getBlockIndexSorted NOTIFY blockIndexSortedChanged)
     Q_PROPERTY(QColor blockColor READ getBlockColor NOTIFY blockColorChanged)
     Q_PROPERTY(QColor textColor READ getTextColor NOTIFY textColorChanged)
     Q_PROPERTY(QColor unsoldTicketColor READ getUnsoldTicketColor NOTIFY unsoldTicketColorChanged)
@@ -47,7 +47,7 @@ public:
     Q_PROPERTY(int prizesCount READ prizesCount WRITE setPrizesCount NOTIFY prizesCountChanged)
 
     Q_PROPERTY(BlockColorsSet_ViewModel* blockColorsList READ getBlockColorsList NOTIFY blockColorsListChanged)
-    Q_PROPERTY(TicketsBlockSelection_ViewModel* blockSelectionList READ getBlockSelectionList NOTIFY blockSelectionListChanged)
+    Q_PROPERTY(TicketsBlockSelection_SortFilterProxyModel* blockSelectionList READ getBlockSelectionList NOTIFY blockSelectionListChanged)
 
     Q_PROPERTY(bool canProceedToPrizeDrawing READ canProceedToPrizeDrawing NOTIFY canProceedToPrizeDrawingChanged)
 
@@ -61,7 +61,7 @@ protected:
     QHash<int, QByteArray> roleNames() const;
 
     QString getBlockName() const;
-    int getBlockIndex() const;
+    int getBlockIndexSorted() const;
     QColor getBlockColor() const;
     QColor getTextColor() const;
     QColor getUnsoldTicketColor() const;
@@ -77,7 +77,7 @@ protected:
     bool canProceedToPrizeDrawing() const;
 
     BlockColorsSet_ViewModel* getBlockColorsList() const;
-    TicketsBlockSelection_ViewModel* getBlockSelectionList() const;
+    TicketsBlockSelection_SortFilterProxyModel* getBlockSelectionList() const;
 
 signals:
     void proceedToPrizeDrawingRequested();
@@ -85,7 +85,7 @@ signals:
     void colorsCountChanged();
 
     void blockNameChanged();
-    void blockIndexChanged(int currentBlockIndex);
+    void blockIndexSortedChanged(int currentBlockIndexSorted);
     void blockColorChanged();
     void textColorChanged();
     void unsoldTicketColorChanged();
@@ -100,15 +100,15 @@ signals:
     void blockSelectionListChanged();
 
 private slots:
-    void onTicketsBlockSelected(int ticketsBlockIndex);
-    void onTicketsBlocksInserted(const QModelIndex& parent, int first, int last);
-    void onTicketsBlocksRemoved(const QModelIndex& parent, int first, int last);
+    void onNonSortedTicketsBlockSelected(int ticketsBlockIndexNonSorted);
+    void onNonSortedTicketsBlocksInserted(const QModelIndex& parent, int firstNonSorted, int lastNonSorted);
+    void onNonSortedTicketsBlocksRemoved(const QModelIndex& parent, int firstNonSorted, int lastNonSorted);
 
 private:
     TombolaDocument& m_TombolaDocument;
     std::shared_ptr<TicketsBlock> m_CurrentTicketsBlock;
     std::unique_ptr<BlockColorsSet_ViewModel> m_BlockColorsSet_ViewModel;
-    std::unique_ptr<TicketsBlockSelection_ViewModel> m_TicketsBlockSelection_ViewModel;
+    std::unique_ptr<TicketsBlockSelection_SortFilterProxyModel> m_TicketsBlockSelection_Sorted_ProxyModel;
     bool m_StartUpStraightIntoPrizeDrawing = false;
 
     void notifyAboutTicketsBlockChanged();

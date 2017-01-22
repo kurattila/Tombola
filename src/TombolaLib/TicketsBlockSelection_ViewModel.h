@@ -2,6 +2,7 @@
 #define TICKETSBLOCKSELECTION_VIEWMODEL_H
 
 #include <QAbstractListModel>
+#include <QSortFilterProxyModel>
 #include <memory>
 
 #include "tombolalib_global.h"
@@ -35,9 +36,9 @@ public:
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 
-    Q_INVOKABLE void doTicketsBlockSelection(int blockIndex);
+    Q_INVOKABLE void doTicketsBlockSelection(int blockIndexNonSorted);
     Q_INVOKABLE void doAddRow();
-    Q_INVOKABLE void doDeleteRow(int ticketsBlockIndex);
+    Q_INVOKABLE void doDeleteRow(int ticketsBlockIndexNonSorted);
 
 protected:
     QHash<int, QByteArray> roleNames() const;
@@ -45,11 +46,32 @@ protected:
     virtual bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
 signals:
-    void rowSelected(int ticketsBlockIndex);
+    void rowSelected(int ticketsBlockIndexNonSorted);
 
 public slots:
-//    void onCurrentBlockChanged(int currentBlockIndex);
+//    void onCurrentBlockChanged(int currentBlockIndexNonSorted);
     void onTicketsBlockDetailUpdated();
+};
+
+class TOMBOLALIBSHARED_EXPORT TicketsBlockSelection_SortFilterProxyModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+    std::unique_ptr<TicketsBlockSelection_ViewModel> m_SourceModel;
+
+public:
+    TicketsBlockSelection_SortFilterProxyModel(std::shared_ptr<TicketsBlocksSet> ticketsBlocksSet, TicketsSellingPoint_ViewModel* parentVM, QObject *parent = 0);
+
+    int MapBlockIndexToSource(int blockIndexSorted) const;
+    int MapBlockIndexFromSource(int blockIndexNonSorted) const;
+
+    Q_INVOKABLE void doTicketsBlockSelection(int blockIndexSorted);
+    Q_INVOKABLE void doAddRow();
+    Q_INVOKABLE void doDeleteRow(int blockIndexSorted);
+
+    TicketsBlockSelection_ViewModel* GetSourceModel() const
+    {
+        return m_SourceModel.get();
+    }
 };
 
 #endif // TICKETSBLOCKSELECTION_VIEWMODEL_H
