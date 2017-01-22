@@ -94,7 +94,7 @@ public:
         CalledInit = true;
     }
     bool CalledOnTriggerByUser = false;
-    SingleTicketDraw_ViewModel::ResultOfUserTrigger ForcedOnTriggerByUserResult;
+    SingleTicketDraw_ViewModel::ResultOfUserTrigger ForcedOnTriggerByUserResult = SingleTicketDraw_ViewModel::ResultOfUserTrigger::Accepted;
     virtual SingleTicketDraw_ViewModel::ResultOfUserTrigger onTriggerByUser() override
     {
         CalledOnTriggerByUser = true;
