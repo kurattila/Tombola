@@ -154,7 +154,7 @@ void SingleTicketDraw_ViewModel_Test::onWinningTicketStateAchieved_WillCommitDra
     singleTicketDrawVM.onTriggerByUser(); // will make the ticket spin
     singleTicketDrawVM.onWinningTicketStateAchieved(); // spinning just stopped
 
-    QCOMPARE(ticketsRepository.GetWinningTicketsHistory().size(), 1U);
+    QCOMPARE(ticketsRepository.GetWinningTicketsHistory().size(), 1UL);
 }
 
 void SingleTicketDraw_ViewModel_Test::Init_WontTryToRemoveAnyRows_WhenZeroRowsShallBeRemoved()

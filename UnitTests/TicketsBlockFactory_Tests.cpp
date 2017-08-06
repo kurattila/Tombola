@@ -36,7 +36,7 @@ void TicketsBlockFactory_Test::CreateBlocks_WillReturnEmptyList_WhenZeroTicketsP
 
     auto blocks = blockFactory.CreateBlocks(QString::fromStdWString(L"KACSA"), 0);
 
-    QCOMPARE(blocks.size(), 0U);
+    QCOMPARE(blocks.size(), 0UL);
 }
 
 void TicketsBlockFactory_Test::CreateBlocks_WillReturnEmptyList_WhenNoWordsSpecifiedAsBlockNames()
@@ -45,7 +45,7 @@ void TicketsBlockFactory_Test::CreateBlocks_WillReturnEmptyList_WhenNoWordsSpeci
 
     auto blocks = blockFactory.CreateBlocks(QString::fromStdWString(L""), 10);
 
-    QCOMPARE(blocks.size(), 0U);
+    QCOMPARE(blocks.size(), 0UL);
 }
 
 void TicketsBlockFactory_Test::CreateBlocks_WillCreateOneBlock_WhenOneWordSpecifiedOnlyAsBlockName()
@@ -54,7 +54,7 @@ void TicketsBlockFactory_Test::CreateBlocks_WillCreateOneBlock_WhenOneWordSpecif
 
     auto blocks = blockFactory.CreateBlocks(QString::fromStdWString(L"KACSA"), 10);
 
-    QCOMPARE(blocks.size(), 1U);
+    QCOMPARE(blocks.size(), 1UL);
 }
 
 void TicketsBlockFactory_Test::CreateBlocks_WillCreate3Blocks_When3RowsSpecifiedAsBlockNames()
@@ -66,7 +66,7 @@ void TicketsBlockFactory_Test::CreateBlocks_WillCreate3Blocks_When3RowsSpecified
 
     auto blocks = blockFactory.CreateBlocks(blockNames, 10);
 
-    QCOMPARE(blocks.size(), 3U);
+    QCOMPARE(blocks.size(), 3UL);
 }
 
 void TicketsBlockFactory_Test::CreateBlocks_WillCreateAllBlocksWithSameNumberOfTickets_When50TicketsPerBlockSpecified()
@@ -117,7 +117,7 @@ void TicketsBlockFactory_Test::CreateBlocks_WontCreateBlocksForEmptyNames_WhenAl
 
     auto blocks = blockFactory.CreateBlocks(blockNames, ticketsPerBlock);
 
-    QCOMPARE(blocks.size(), 3U);
+    QCOMPARE(blocks.size(), 3UL);
     auto kacsaBlock = *blocks.begin();
     auto kutyaBlock = *std::next(blocks.begin(), 1);
     auto dinoBlock = *std::next(blocks.begin(), 2);
@@ -132,7 +132,7 @@ void TicketsBlockFactory_Test::CreateSingleBlock_WillCreateBlockWith20Tickets_Wh
 
     std::unique_ptr<TicketsBlock> block(blockFactory.CreateSingleBlock(20));
 
-    QCOMPARE(block->GetSoldTicketIds().size(), 0U);
+    QCOMPARE(block->GetSoldTicketIds().size(), 0UL);
 }
 
 void TicketsBlockFactory_Test::CreateSingleBlock_WillCreateBlockCalledUntitled_WhenVeryFirstBlockCreated()

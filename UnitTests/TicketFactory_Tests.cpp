@@ -31,7 +31,7 @@ void TicketFactory_Test::CreateTicketsFromBlock_ReturnsEmptyList_WhenBlockHasNoS
 
     auto tickets = ticketFactory.CreateTicketsFromBlock(block);
 
-    QCOMPARE(tickets.size(), 0U);
+    QCOMPARE(tickets.size(), 0UL);
 }
 
 void TicketFactory_Test::CreateTicketsFromBlock_ReturnsListOf3Tickets_WhenBlockHas3SoldTickets()
@@ -44,7 +44,7 @@ void TicketFactory_Test::CreateTicketsFromBlock_ReturnsListOf3Tickets_WhenBlockH
 
     auto tickets = ticketFactory.CreateTicketsFromBlock(block);
 
-    QCOMPARE(tickets.size(), 3U);
+    QCOMPARE(tickets.size(), 3UL);
 }
 
 void TicketFactory_Test::CreateTicketsFromBlock_SetsTicketIdOfEachTicket_Always()

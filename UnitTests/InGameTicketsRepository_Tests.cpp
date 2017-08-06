@@ -49,7 +49,7 @@ void InGameTicketsRepository_Test::Reset_WillClearWinningTicketsHistory_WhenInit
     repository.Reset(allTickets); // prize drawing _restarted_!
 
     auto winningTickets = repository.GetWinningTicketsHistory();
-    QCOMPARE(winningTickets.size(), 0U);
+    QCOMPARE(winningTickets.size(), 0UL);
 }
 
 void InGameTicketsRepository_Test::GetUntouchedTickets_ReturnsAllTickets_WhenNoTicketsDrawnYet()
@@ -64,7 +64,7 @@ void InGameTicketsRepository_Test::GetUntouchedTickets_ReturnsAllTickets_WhenNoT
 
     auto untouchedTickets = repository.GetUntouchedTickets();
 
-    QCOMPARE(untouchedTickets.size(), 3U);
+    QCOMPARE(untouchedTickets.size(), 3UL);
     QCOMPARE(untouchedTickets.front(), ticket1);
     QCOMPARE(*std::next(untouchedTickets.begin()), ticket2);
     QCOMPARE(untouchedTickets.back(), ticket3);
@@ -82,7 +82,7 @@ void InGameTicketsRepository_Test::GetWinningTicketsHistory_ReturnsEmptyList_Whe
 
     auto winningTickets = repository.GetWinningTicketsHistory();
 
-    QCOMPARE(winningTickets.size(), 0U);
+    QCOMPARE(winningTickets.size(), 0UL);
 }
 
 void InGameTicketsRepository_Test::GetWinningTicketsHistory_Returns2Tickets_When2TicketsDrawnAlready()
@@ -102,7 +102,7 @@ void InGameTicketsRepository_Test::GetWinningTicketsHistory_Returns2Tickets_When
     auto winningTickets = repository.GetWinningTicketsHistory();
 
     // the most recently drawn winning ticket shall be at 'front'
-    QCOMPARE(winningTickets.size(), 2U);
+    QCOMPARE(winningTickets.size(), 2UL);
     QCOMPARE(winningTickets.front(), ticket3);
     QCOMPARE(winningTickets.back(), ticket1);
 }
@@ -127,7 +127,7 @@ void InGameTicketsRepository_Test::OnTicketDrawnBegin_WillRemoveWinningTicketFro
     repository.OnTicketDrawnPrepare(ticket2);
 
     auto untouchedTickets = repository.GetUntouchedTickets();
-    QCOMPARE(untouchedTickets.size(), 2U);
+    QCOMPARE(untouchedTickets.size(), 2UL);
     QCOMPARE(untouchedTickets.front(), ticket1);
     QCOMPARE(untouchedTickets.back(), ticket3);
 }
@@ -147,7 +147,7 @@ void InGameTicketsRepository_Test::OnTicketDrawnBegin_WillEmptyUntouchedTickets_
     repository.OnTicketDrawnPrepare(ticket1);
 
     auto untouchedTickets = repository.GetUntouchedTickets();
-    QCOMPARE(untouchedTickets.size(), 0U);
+    QCOMPARE(untouchedTickets.size(), 0UL);
 }
 
 void InGameTicketsRepository_Test::TicketDrawn_WontBePartOfWinningTickets_WhenOnTicketDrawnEndNotCalledYet()
@@ -164,7 +164,7 @@ void InGameTicketsRepository_Test::TicketDrawn_WontBePartOfWinningTickets_WhenOn
     repository.OnTicketDrawnPrepare(ticket3);
 
     auto& winningTickets = repository.GetWinningTicketsHistory();
-    QCOMPARE(winningTickets.size(), 0U);
+    QCOMPARE(winningTickets.size(), 0UL);
 }
 
 void InGameTicketsRepository_Test::TicketDrawn_WillBecomePartOfWinningTickets_WhenOnTicketDrawnEndCalled()
@@ -183,7 +183,7 @@ void InGameTicketsRepository_Test::TicketDrawn_WillBecomePartOfWinningTickets_Wh
     repository.OnTicketDrawnCommit(ticket3);
 
     auto& winningTickets = repository.GetWinningTicketsHistory();
-    QCOMPARE(winningTickets.size(), 2U);
+    QCOMPARE(winningTickets.size(), 2UL);
     QCOMPARE(winningTickets.front(), ticket3);
     QCOMPARE(winningTickets.back(), ticket2);
 }
@@ -214,7 +214,7 @@ void InGameTicketsRepository_Test::RestoreFromMemento_RestoresTwoUntouchedTicket
     InGameTicketsRepository repository;
     repository.RestoreFromMemento(memento.get(), &allBlocks);
 
-    QCOMPARE(repository.GetUntouchedTickets().size(), 2U);
+    QCOMPARE(repository.GetUntouchedTickets().size(), 2UL);
     QCOMPARE(repository.GetUntouchedTickets().front()->TicketNumber(), 3);
     QCOMPARE(repository.GetUntouchedTickets().back()->TicketNumber(), 1);
 }
@@ -243,7 +243,7 @@ void InGameTicketsRepository_Test::RestoreFromMemento_RestoresOneWinningTicket_I
     InGameTicketsRepository repository;
     repository.RestoreFromMemento(memento.get(), &allBlocks);
 
-    QCOMPARE(repository.GetWinningTicketsHistory().size(), 1U);
+    QCOMPARE(repository.GetWinningTicketsHistory().size(), 1UL);
     QCOMPARE(repository.GetWinningTicketsHistory().front()->TicketNumber(), 2);
 }
 

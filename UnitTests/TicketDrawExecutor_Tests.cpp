@@ -133,8 +133,8 @@ void TicketDrawExecutor_Test::onPrizeDrawingStartUp_WillPassNonEmptyRepositoryTo
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
     QCOMPARE(ticketDrawLeft->PrivateInGameRepository(), ticketDrawRight->PrivateInGameRepository());
-    QCOMPARE(ticketDrawLeft->PrivateInGameRepository()->GetUntouchedTickets().size(), 1U);
-    QCOMPARE(ticketDrawRight->PrivateInGameRepository()->GetUntouchedTickets().size(), 1U);
+    QCOMPARE(ticketDrawLeft->PrivateInGameRepository()->GetUntouchedTickets().size(), 1UL);
+    QCOMPARE(ticketDrawRight->PrivateInGameRepository()->GetUntouchedTickets().size(), 1UL);
 }
 
 void TicketDrawExecutor_Test::onPrizeDrawingStartUp_WillClearSpinningStatuses_WhenCalledRepeatedly()
@@ -267,7 +267,7 @@ void TicketDrawExecutor_Test::onPrizeDrawingStartup_WontResetInGameTicketsReposi
     ticketDrawExecutor.RestoreFromMemento(mem.get());
     ticketDrawExecutor.onPrizeDrawingStartUp();
 
-    QCOMPARE(ticketDrawLeft->PrivateInGameRepository()->GetUntouchedTickets().size(), 2U);
+    QCOMPARE(ticketDrawLeft->PrivateInGameRepository()->GetUntouchedTickets().size(), 2UL);
 }
 
 void TicketDrawExecutor_Test::remainingPrizesCount_ReturnsTotalPrizesCount_WhenNoTicketDrawExecutedYet()

@@ -48,7 +48,7 @@ void TicketsBlock_Test::GetSoldTicketIds_WillReturnEmptyList_ByDefault()
 
     auto soldTickets = block.GetSoldTicketIds();
 
-    QCOMPARE(soldTickets.size(), 0U);
+    QCOMPARE(soldTickets.size(), 0UL);
 }
 
 void TicketsBlock_Test::GetSoldTicketIds_WillReturn1To5_WhenAllTicketsSoldInAFiveTicketBlock()
@@ -59,7 +59,7 @@ void TicketsBlock_Test::GetSoldTicketIds_WillReturn1To5_WhenAllTicketsSoldInAFiv
 
     auto soldTickets = block.GetSoldTicketIds();
 
-    QCOMPARE(soldTickets.size(), 5U);
+    QCOMPARE(soldTickets.size(), 5UL);
     QCOMPARE(*std::next(soldTickets.begin(), 0), 1);
     QCOMPARE(*std::next(soldTickets.begin(), 1), 2);
     QCOMPARE(*std::next(soldTickets.begin(), 2), 3);
@@ -75,7 +75,7 @@ void TicketsBlock_Test::ToggleSoldTicket_WillMarkTicketAsSold_WhenNotSoldYet()
     block.ToggleSoldTicket(11);
 
     auto soldTickets = block.GetSoldTicketIds();
-    QCOMPARE(soldTickets.size(), 2U);
+    QCOMPARE(soldTickets.size(), 2UL);
 }
 
 void TicketsBlock_Test::ToggleSoldTicket_WillMarkTicketAsNotSold_WhenAlreadySold()
@@ -87,7 +87,7 @@ void TicketsBlock_Test::ToggleSoldTicket_WillMarkTicketAsNotSold_WhenAlreadySold
     block.ToggleSoldTicket(10);
 
     auto soldTickets = block.GetSoldTicketIds();
-    QCOMPARE(soldTickets.size(), 1U);
+    QCOMPARE(soldTickets.size(), 1UL);
     QCOMPARE(*soldTickets.cbegin(), 11);
 }
 
@@ -98,7 +98,7 @@ void TicketsBlock_Test::ToggleSoldTicket_WillMarkLastTicketAsSold_When100Tickets
 
     auto soldTickets = block.GetSoldTicketIds();
 
-    QCOMPARE(soldTickets.size(), 1U);
+    QCOMPARE(soldTickets.size(), 1UL);
     QCOMPARE(*soldTickets.begin(), 100);
 }
 
@@ -109,7 +109,7 @@ void TicketsBlock_Test::ToggleSoldTicket_WontMarkAnyTicketsAsSold_When100Tickets
 
     auto soldTickets = block.GetSoldTicketIds();
 
-    QCOMPARE(soldTickets.size(), 0U);
+    QCOMPARE(soldTickets.size(), 0UL);
 }
 
 void TicketsBlock_Test::ToggleSoldTicket_WontMarkAnyTicketsAsSold_When100TicketsInBlockButMarking101thTicket()
@@ -119,7 +119,7 @@ void TicketsBlock_Test::ToggleSoldTicket_WontMarkAnyTicketsAsSold_When100Tickets
 
     auto soldTickets = block.GetSoldTicketIds();
 
-    QCOMPARE(soldTickets.size(), 0U);
+    QCOMPARE(soldTickets.size(), 0UL);
 }
 
 void TicketsBlock_Test::SetTicketSold_WillSetTicketAsSold_WhenTrueSpecifiedAndTicketWasUnsoldBefore()
@@ -128,7 +128,7 @@ void TicketsBlock_Test::SetTicketSold_WillSetTicketAsSold_WhenTrueSpecifiedAndTi
 
     block.SetTicketSold(2, true);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 1U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 1UL);
     QCOMPARE(*block.GetSoldTicketIds().begin(), 2);
 }
 
@@ -139,7 +139,7 @@ void TicketsBlock_Test::SetTicketSold_WillLeaveTicketAsSold_WhenTrueSpecifiedTic
 
     block.SetTicketSold(2, true);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 1U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 1UL);
     QCOMPARE(*block.GetSoldTicketIds().begin(), 2);
 }
 
@@ -150,7 +150,7 @@ void TicketsBlock_Test::SetTicketSold_WillClearTicketSoldFlag_WhenFalseSpecified
 
     block.SetTicketSold(2, false);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 1U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 1UL);
     QCOMPARE(*block.GetSoldTicketIds().begin(), 1);
 }
 
@@ -162,7 +162,7 @@ void TicketsBlock_Test::SetTicketSold_WillClearTicketSoldFlag_WhenFalseSpecified
 
     block.SetTicketSold(2, false);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 1U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 1UL);
     QCOMPARE(*block.GetSoldTicketIds().begin(), 1);
 }
 
@@ -173,7 +173,7 @@ void TicketsBlock_Test::SetTicketSold_WontTouchSoldState_WhenTicketOutsideTheVal
     block.SetTicketSold(-1, true);
     block.SetTicketSold(101, true);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 0U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 0UL);
 }
 
 void TicketsBlock_Test::RangeOperationInProgress_WillSetStartingTicketAsSold_WhenNoOtherTicketsWereTouched()
@@ -184,7 +184,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillSetStartingTicketAsSold_Whe
     block.RangeOperationInProgress(2);
     block.EndRangeOperation(2);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 1U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 1UL);
     QCOMPARE(*block.GetSoldTicketIds().begin(), 2);
 }
 
@@ -197,7 +197,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillSetStartingTicketAsSold_Whe
     block.RangeOperationInProgress(2); // twice
     block.EndRangeOperation(2);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 1U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 1UL);
     QCOMPARE(*block.GetSoldTicketIds().begin(), 2);
 }
 
@@ -211,7 +211,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillSetAllTicketFromBeginToEndA
     block.RangeOperationInProgress(4);
     block.EndRangeOperation(4);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 3U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 3UL);
     auto it = block.GetSoldTicketIds().begin();
     QCOMPARE(*it, 2);
     QCOMPARE(*(++it), 3);
@@ -228,7 +228,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillSetAllTicketFromBeginToEndA
     block.RangeOperationInProgress(2);
     block.EndRangeOperation(2);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 3U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 3UL);
     auto it = block.GetSoldTicketIds().begin();
     QCOMPARE(*it, 2);
     QCOMPARE(*(++it), 3);
@@ -247,7 +247,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WontChangeTicketsBeyondEnd_Even
     block.RangeOperationInProgress(4);
     block.EndRangeOperation(4);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 3U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 3UL);
     auto it = block.GetSoldTicketIds().begin();
     QCOMPARE(*it, 2);
     QCOMPARE(*(++it), 3);
@@ -263,7 +263,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillSetUntouchedTickets_WhenTou
     block.RangeOperationInProgress(5); // jump to an imaginary, different "row" of tickets
     block.EndRangeOperation(5);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 4U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 4UL);
     auto it = block.GetSoldTicketIds().begin();
     QCOMPARE(*it, 2);
     QCOMPARE(*(++it), 3);
@@ -283,7 +283,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillMarkTicketsAsUnsold_WhenSta
     block.RangeOperationInProgress(4);
     block.EndRangeOperation(4);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 0U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 0UL);
 }
 
 void TicketsBlock_Test::RangeOperationInProgress_WillRestorePreviousTicketsState_WhenTicketTouchedButFinallyNotIncludedInRangeOperation()
@@ -299,7 +299,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillRestorePreviousTicketsState
     block.RangeOperationInProgress(2);
     block.EndRangeOperation(2);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 2U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 2UL);
     auto it = block.GetSoldTicketIds().begin();
     QCOMPARE(*it, 2);
     QCOMPARE(*(++it), 4);
@@ -315,7 +315,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillIgnoreAnyRequests_WhenHighe
     block.RangeOperationInProgress(7);
     block.EndRangeOperation(5);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 1U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 1UL);
     auto it = block.GetSoldTicketIds().begin();
     QCOMPARE(*it, 5);
 }
@@ -331,7 +331,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillIgnoreAnyRequests_WhenLower
     block.RangeOperationInProgress(-1);
     block.EndRangeOperation(-1);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 2U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 2UL);
     auto it = block.GetSoldTicketIds().begin();
     QCOMPARE(*it, 1);
     QCOMPARE(*(++it), 2);
@@ -347,7 +347,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillIgnoreAnyRequests_WhenBegin
     block.RangeOperationInProgress(99);
     block.EndRangeOperation(99);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 0U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 0UL);
 }
 
 void TicketsBlock_Test::RangeOperationInProgress_WillReverseAllTicketsOutsideTheRange_EvenIfRevertingWholeRowsIsNeeded()
@@ -362,7 +362,7 @@ void TicketsBlock_Test::RangeOperationInProgress_WillReverseAllTicketsOutsideThe
     block.RangeOperationInProgress(21);
     block.EndRangeOperation(21);
 
-    QCOMPARE(block.GetSoldTicketIds().size(), 2U);
+    QCOMPARE(block.GetSoldTicketIds().size(), 2UL);
     auto it = block.GetSoldTicketIds().begin();
     QCOMPARE(*it, 20);
     QCOMPARE(*(++it), 21);
