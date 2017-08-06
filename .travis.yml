@@ -1,0 +1,27 @@
+#
+# Sources/infos for putting together Qt + Travis CI + Coveralls
+#
+# http://osdevlab.blogspot.sk/2016/02/simple-unit-test-with-qt-continuous.html
+# https://forum.qt.io/topic/50340/installing-qt-5-4-dev-packages-in-travis-ci/16
+# https://github.com/eddyxu/cpp-coveralls
+# https://andrewdolby.com/articles/2016/continuous-deployment-for-qt-applications/
+
+language: cpp
+sudo: required
+compiler:
+  - gcc
+before_install:
+  - sudo add-apt-repository --yes ppa:beineri/opt-qt551-trusty
+  - sudo apt-get update -qq
+  - pip install --user cpp-coveralls
+install:
+  - sudo apt-get -y install qt55[QTPACKAGE]
+script:
+  - source /opt/qt55/bin/qt55-env.sh
+  - /opt/qt55/bin/qmake
+  - export LD_LIBRARY_PATH=/home/travis/build/kurattila/Tombola/src/TombolaLib:$LD_LIBRARY_PATH
+  - echo $LD_LIBRARY_PATH
+  - make
+  - make check
+after_success:
+  - coveralls --exclude UnitTests --exclude-pattern '.*\.moc$' --exclude-pattern "moc_.*\.cpp$" --gcov-options '\-lp'
