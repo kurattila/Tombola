@@ -11,7 +11,7 @@ sudo: required
 compiler:
   - gcc
 env:
-  - LD_LIBRARY_PATH="../src/TombolaLib"
+  - LD_LIBRARY_PATH=/home/travis/build/kurattila/Tombola/src/TombolaLib
 before_install:
   - sudo add-apt-repository --yes ppa:beineri/opt-qt551-trusty
   - sudo apt-get update -qq
