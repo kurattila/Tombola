@@ -23,4 +23,4 @@ script:
   - make
   - make check
 after_success:
-  - coveralls --exclude UnitTests --exlude 'qrc_qml.cpp' --exclude-pattern '.*TombolaLib/moc_.*' --exclude-pattern '.*\.moc$' --exclude-pattern "moc_.*\.cpp$" --gcov-options '\-lp'
+  - coveralls --exclude UnitTests --exclude 'qrc_qml.cpp' --exclude-pattern '.*TombolaLib/moc_.*' --exclude-pattern '.*\.moc$' --exclude-pattern "moc_.*\.cpp$" --gcov-options '\-lp'
