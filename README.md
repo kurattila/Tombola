@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/kurattila/Tombola.svg?branch=master)](https://travis-ci.org/kurattila/Tombola)
+[![Coverage Status](https://coveralls.io/repos/github/kurattila/Tombola/badge.png?branch=master)](https://coveralls.io/github/kurattila/Tombola?branch=master)
+
 # Tombola
 Prize drawing tool with Visualization
 
