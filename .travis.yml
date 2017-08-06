@@ -19,8 +19,7 @@ install:
 script:
   - source /opt/qt55/bin/qt55-env.sh
   - /opt/qt55/bin/qmake
-  - export LD_LIBRARY_PATH=/home/travis/build/kurattila/Tombola/src/TombolaLib:$LD_LIBRARY_PATH
-  - echo $LD_LIBRARY_PATH
+  - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/src/TombolaLib:$LD_LIBRARY_PATH
   - make
   - make check
 after_success:
