@@ -10,6 +10,8 @@ language: cpp
 sudo: required
 compiler:
   - gcc
+env:
+  - LD_LIBRARY_PATH="../src/TombolaLib"
 before_install:
   - sudo add-apt-repository --yes ppa:beineri/opt-qt551-trusty
   - sudo apt-get update -qq
