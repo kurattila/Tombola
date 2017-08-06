@@ -2,8 +2,15 @@
 # INCLUDEPATH += $$TOP_PWD/src/libs
 SRC_DIR = $$TOP_PWD
 
-# Enable C++11 support (but on MSVC not needed - it generates warnings)
-unix:QMAKE_CXXFLAGS += -std=c++0x
+unix {
+    # Enable C++11 support (but on MSVC not needed - it generates warnings)
+    QMAKE_CXXFLAGS += -std=c++0x
+
+    # Code Coverage
+    QMAKE_CXXFLAGS += --coverage
+    QMAKE_LFLAGS += --coverage
+}
+
 
 # When deploying to Windows XP, prevent error message "not a Win32 application"
 # http://www.tripleboot.org/?p=423
