@@ -6,6 +6,6 @@ Prize drawing tool with Visualization
 
 - Create customizable ticket blocks (combination of different colors + title)
 - Easily mark which tickets have been sold
-![TicketSellingPoint](Tombola - ticket selling point 600.gif "Selling tickets before prize drawing")
+![Selling tickets before prize drawing](Tombola%20-%20ticket%20selling%20point%20600.gif)
 - 2 parallel drawings at once, animated side-by-side
-![PrizeDrawing](Tombola - prize drawing 600.gif "Drawing tombola tickets")
+![Drawing tombola tickets](Tombola%20-%20prize%20drawing%20600.gif)
